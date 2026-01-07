@@ -9,8 +9,12 @@ import Container from "@mui/material/Container";
 import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
+import { Link } from "react-router-dom";
 
-const settings = ["Profile", "Account", "Logout"];
+const settings = [
+  { to: "/profile", label: "Profile" },
+  { to: "/logout", label: "Logout" },
+];
 
 function Navbar() {
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
@@ -38,7 +42,13 @@ function Navbar() {
               fontWeight: 700,
               color: "inherit",
               textDecoration: "none",
+              "&:hover": {
+                color: "primary.contrastText",
+              },
             }}
+            component={Link}
+            to="/"
+            color="inherit"
           >
             MQ Student Mark Book
           </Typography>
@@ -68,10 +78,14 @@ function Navbar() {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: "center" }}>
-                    {setting}
-                  </Typography>
+                <MenuItem key={setting.to} onClick={handleCloseUserMenu}>
+                  <Link to={setting.to}>
+                    <Typography
+                      sx={{ textAlign: "center", color: "black" }}
+                    >
+                      {setting.label}
+                    </Typography>
+                  </Link>
                 </MenuItem>
               ))}
             </Menu>
