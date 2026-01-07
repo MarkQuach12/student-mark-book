@@ -1,12 +1,12 @@
-import './App.css'
+import "./App.css";
+import Navbar from "./components/navbar";
 
 function App() {
-
   return (
     <>
-      <h1>Student Mark Book</h1>
+      <Navbar />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
