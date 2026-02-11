@@ -9,14 +9,23 @@ import Container from "@mui/material/Container";
 import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import { Link } from "react-router-dom";
+import Button from "@mui/material/Button";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
-const settings = [
-  { to: "/profile", label: "Profile" },
-  { to: "/logout", label: "Logout" },
-];
+function getInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((s) => s[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 function Navbar() {
+  const navigate = useNavigate();
+  const { user: currentUser, clearUser } = useAuth();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
     null
   );
@@ -27,6 +36,12 @@ function Navbar() {
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
+  };
+
+  const handleLogout = () => {
+    handleCloseUserMenu();
+    clearUser();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -55,40 +70,63 @@ function Navbar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: "45px" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem key={setting.to} onClick={handleCloseUserMenu}>
-                  <Link to={setting.to}>
-                    <Typography
-                      sx={{ textAlign: "center", color: "black" }}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {currentUser ? (
+              <>
+                <Tooltip title="Open settings">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar
+                      alt={currentUser.name}
+                      sx={{ bgcolor: "primary.dark" }}
                     >
-                      {setting.label}
+                      {getInitials(currentUser.name)}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: "45px" }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  <MenuItem component={Link} to="/profile" onClick={handleCloseUserMenu}>
+                    <Typography sx={{ textAlign: "center", color: "black" }}>
+                      Profile
                     </Typography>
-                  </Link>
-                </MenuItem>
-              ))}
-            </Menu>
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    <Typography sx={{ textAlign: "center", color: "black" }}>
+                      Logout
+                    </Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Button color="inherit" component={Link} to="/login">
+                  Log in
+                </Button>
+                <Button
+                  color="inherit"
+                  component={Link}
+                  to="/signup"
+                  variant="outlined"
+                  sx={{ borderColor: "primary.contrastText", color: "primary.contrastText" }}
+                >
+                  Sign up
+                </Button>
+              </>
+            )}
           </Box>
         </Toolbar>
       </Container>
