@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
@@ -11,9 +12,9 @@ import TableRow from "@mui/material/TableRow";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
-import { useParams } from "react-router-dom";
-import { useSampleData, getHomeworkByWeek } from "./classPage/sampleData";
-import type { Homework, Student } from "./classPage/types";
+import { useNavigate, useParams } from "react-router-dom";
+import { getClassById } from "../utils/classStorage";
+import type { CompletionMap, Homework, Student } from "./classPage/types";
 
 const ClassHeader = ({
   className,
@@ -97,7 +98,14 @@ const StudentRow = ({
         <Checkbox
           checked={isInClass}
           onChange={(e) => onAttendanceChange(student.id, e.target.checked)}
-          color="primary"
+          size="small"
+          sx={{
+            color: "action.active",
+            "&.Mui-checked": {
+              color: "success.main",
+              opacity: 0.85,
+            },
+          }}
         />
       </TableCell>
       <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
@@ -140,10 +148,10 @@ const WeekContent = ({
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={{ fontWeight: 600, minWidth: 100 }}>
+              <TableCell align="center" sx={{ p: 0.5, fontWeight: 600, minWidth: 100 }}>
                 In class
               </TableCell>
-              <TableCell sx={{ fontWeight: 600, minWidth: 160 }}>Student</TableCell>
+              <TableCell sx={{ fontWeight: 600,  minWidth: 160 }}>Student</TableCell>
               {homeworkForWeek.map((hw) => (
                 <TableCell key={hw.id} align="center" sx={{ minWidth: 120 }}>
                   {hw.title}
@@ -170,19 +178,44 @@ const WeekContent = ({
   );
 };
 
+const getHomeworkByWeek = (homework: Homework[], week: number): Homework[] =>
+  homework.filter((h) => h.week === week);
+
 const ClassPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [selectedWeek, setSelectedWeek] = useState(1);
-  const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, boolean>>({
-    s1: true,
-    s2: true,
-    s3: false,
-    s4: true,
-    s5: true,
-  });
+  const navigate = useNavigate();
+  const classData = id ? getClassById(id) : null;
 
-  const { classData, completions, setCompletion } = useSampleData(id ?? "1");
+  const [selectedWeek, setSelectedWeek] = useState(1);
+  const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, boolean>>({});
+  const [completions, setCompletions] = useState<CompletionMap>({});
+
+  const setCompletion = useCallback(
+    (studentId: string, homeworkId: string, completed: boolean) => {
+      const key = `${studentId}-${homeworkId}`;
+      setCompletions((prev) => ({ ...prev, [key]: completed }));
+    },
+    []
+  );
+
+  if (!classData) {
+    return (
+      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
+        <Typography variant="h5" gutterBottom>
+          Class not found
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          The class you are looking for does not exist or has been removed.
+        </Typography>
+        <Button variant="contained" onClick={() => navigate("/")}>
+          Back to Home
+        </Button>
+      </Container>
+    );
+  }
+
   const homeworkForWeek = getHomeworkByWeek(classData.homework, selectedWeek);
+
   const handleAttendanceChange = (studentId: string, inClass: boolean) => {
     setAttendanceByStudentId((prev) => ({ ...prev, [studentId]: inClass }));
   };

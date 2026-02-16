@@ -17,7 +17,11 @@ export interface CompletionRecord {
 
 export interface ClassData {
   id: string;
-  name: string;
+  classLevel: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  name: string; // computed display name
   students: Student[];
   homework: Homework[];
 }
