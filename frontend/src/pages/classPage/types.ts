@@ -6,7 +6,8 @@ export interface Student {
 export interface Homework {
   id: string;
   title: string;
-  week: number; // 1–10
+  termKey: string;   // e.g. "term1", "term1Holiday", "term2", ...
+  weekIndex: number; // 1-based index within that term's week list
 }
 
 export interface CompletionRecord {

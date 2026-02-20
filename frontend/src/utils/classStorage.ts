@@ -33,3 +33,4 @@ export function deleteClass(id: string): void {
   const classes = getClasses().filter((c) => c.id !== id);
   localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
 }
+

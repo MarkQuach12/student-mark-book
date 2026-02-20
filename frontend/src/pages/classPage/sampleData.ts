@@ -12,36 +12,36 @@ const SAMPLE_STUDENTS: Student[] = [
 ];
 
 const SAMPLE_HOMEWORK: Homework[] = [
-  { id: "hw1", title: "Homework 1", week: 1 },
-  { id: "hw2", title: "Worksheet 1", week: 1 },
-  { id: "hw3", title: "Practice 1", week: 1 },
-  { id: "hw4", title: "Homework 2", week: 2 },
-  { id: "hw5", title: "Worksheet 2", week: 2 },
-  { id: "hw6", title: "Practice 2", week: 2 },
-  { id: "hw7", title: "Homework 3", week: 3 },
-  { id: "hw8", title: "Worksheet 3", week: 3 },
-  { id: "hw9", title: "Practice 3", week: 3 },
-  { id: "hw10", title: "Homework 4", week: 4 },
-  { id: "hw11", title: "Worksheet 4", week: 4 },
-  { id: "hw12", title: "Practice 4", week: 4 },
-  { id: "hw13", title: "Homework 5", week: 5 },
-  { id: "hw14", title: "Worksheet 5", week: 5 },
-  { id: "hw15", title: "Practice 5", week: 5 },
-  { id: "hw16", title: "Homework 6", week: 6 },
-  { id: "hw17", title: "Worksheet 6", week: 6 },
-  { id: "hw18", title: "Practice 6", week: 6 },
-  { id: "hw19", title: "Homework 7", week: 7 },
-  { id: "hw20", title: "Worksheet 7", week: 7 },
-  { id: "hw21", title: "Practice 7", week: 7 },
-  { id: "hw22", title: "Homework 8", week: 8 },
-  { id: "hw23", title: "Worksheet 8", week: 8 },
-  { id: "hw24", title: "Practice 8", week: 8 },
-  { id: "hw25", title: "Homework 9", week: 9 },
-  { id: "hw26", title: "Worksheet 9", week: 9 },
-  { id: "hw27", title: "Practice 9", week: 9 },
-  { id: "hw28", title: "Homework 10", week: 10 },
-  { id: "hw29", title: "Worksheet 10", week: 10 },
-  { id: "hw30", title: "Practice 10", week: 10 },
+  { id: "hw1",  title: "Homework 1",  termKey: "term1", weekIndex: 1 },
+  { id: "hw2",  title: "Worksheet 1", termKey: "term1", weekIndex: 1 },
+  { id: "hw3",  title: "Practice 1",  termKey: "term1", weekIndex: 1 },
+  { id: "hw4",  title: "Homework 2",  termKey: "term1", weekIndex: 2 },
+  { id: "hw5",  title: "Worksheet 2", termKey: "term1", weekIndex: 2 },
+  { id: "hw6",  title: "Practice 2",  termKey: "term1", weekIndex: 2 },
+  { id: "hw7",  title: "Homework 3",  termKey: "term1", weekIndex: 3 },
+  { id: "hw8",  title: "Worksheet 3", termKey: "term1", weekIndex: 3 },
+  { id: "hw9",  title: "Practice 3",  termKey: "term1", weekIndex: 3 },
+  { id: "hw10", title: "Homework 4",  termKey: "term1", weekIndex: 4 },
+  { id: "hw11", title: "Worksheet 4", termKey: "term1", weekIndex: 4 },
+  { id: "hw12", title: "Practice 4",  termKey: "term1", weekIndex: 4 },
+  { id: "hw13", title: "Homework 5",  termKey: "term1", weekIndex: 5 },
+  { id: "hw14", title: "Worksheet 5", termKey: "term1", weekIndex: 5 },
+  { id: "hw15", title: "Practice 5",  termKey: "term1", weekIndex: 5 },
+  { id: "hw16", title: "Homework 6",  termKey: "term1", weekIndex: 6 },
+  { id: "hw17", title: "Worksheet 6", termKey: "term1", weekIndex: 6 },
+  { id: "hw18", title: "Practice 6",  termKey: "term1", weekIndex: 6 },
+  { id: "hw19", title: "Homework 7",  termKey: "term1", weekIndex: 7 },
+  { id: "hw20", title: "Worksheet 7", termKey: "term1", weekIndex: 7 },
+  { id: "hw21", title: "Practice 7",  termKey: "term1", weekIndex: 7 },
+  { id: "hw22", title: "Homework 8",  termKey: "term1", weekIndex: 8 },
+  { id: "hw23", title: "Worksheet 8", termKey: "term1", weekIndex: 8 },
+  { id: "hw24", title: "Practice 8",  termKey: "term1", weekIndex: 8 },
+  { id: "hw25", title: "Homework 9",  termKey: "term1", weekIndex: 9 },
+  { id: "hw26", title: "Worksheet 9", termKey: "term1", weekIndex: 9 },
+  { id: "hw27", title: "Practice 9",  termKey: "term1", weekIndex: 9 },
+  { id: "hw28", title: "Homework 1",  termKey: "term2", weekIndex: 1 },
+  { id: "hw29", title: "Worksheet 1", termKey: "term2", weekIndex: 1 },
+  { id: "hw30", title: "Practice 1",  termKey: "term2", weekIndex: 1 },
 ];
 
 // Keys for which homework is completed: "studentId-homeworkId". Everything else starts as incomplete.
@@ -108,6 +108,6 @@ export const useSampleData = (classId: string): {
   };
 };
 
-export const getHomeworkByWeek = (homework: Homework[], week: number): Homework[] => {
-  return homework.filter((h) => h.week === week);
+export const getHomeworkForWeek = (homework: Homework[], termKey: string, weekIndex: number): Homework[] => {
+  return homework.filter((h) => h.termKey === termKey && h.weekIndex === weekIndex);
 };
