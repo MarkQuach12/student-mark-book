@@ -24,7 +24,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { getClassById, saveClass } from "../utils/classStorage";
-import type { CompletionMap, Homework, Student } from "./classPage/types";
+import type { CompletionMap, Homework, PaymentStatus, Student } from "./classPage/types";
 import { TERMS, getTermByKey } from "./classPage/termData";
 import AddHomeworkDialog from "../components/AddHomeworkDialog";
 import AddStudentDialog from "../components/AddStudentDialog";
@@ -124,40 +124,85 @@ const CompletionCell = ({
   );
 };
 
+const PaymentCell = ({
+  status,
+  onChange,
+  compact = true,
+}: {
+  status: PaymentStatus;
+  onChange: (status: PaymentStatus) => void;
+  compact?: boolean;
+}) => {
+  const isPaid = status === "paid_cash" || status === "paid_online";
+  return (
+    <TableCell sx={{ pl: 1, pr: 2, width: compact ? "1px" : undefined }}>
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Select
+        size="small"
+        value={status}
+        onChange={(e) => onChange(e.target.value as PaymentStatus)}
+        sx={{
+          fontSize: "0.75rem",
+          minWidth: 80,
+          backgroundColor: isPaid ? "success.light" : undefined,
+          "& .MuiSelect-select": { py: 0.5, px: 1 },
+        }}
+      >
+        <MenuItem value="unpaid">Unpaid</MenuItem>
+        <MenuItem value="paid_cash">Cash</MenuItem>
+        <MenuItem value="paid_online">Online</MenuItem>
+      </Select>
+      </Box>
+    </TableCell>
+  );
+};
+
 const StudentRow = ({
   student,
   isInClass,
+  paymentStatus,
   homeworkForWeek,
   completions,
   onAttendanceChange,
+  onPaymentChange,
   onCompletionChange,
 }: {
   student: Student;
   isInClass: boolean;
+  paymentStatus: PaymentStatus;
   homeworkForWeek: Homework[];
   completions: Record<string, boolean>;
   onAttendanceChange: (studentId: string, inClass: boolean) => void;
+  onPaymentChange: (studentId: string, status: PaymentStatus) => void;
   onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
 }) => {
+  const hasHomework = homeworkForWeek.length > 0;
   return (
     <TableRow hover>
-      <TableCell align="center" sx={{ px: 0.5 }}>
-        <Checkbox
-          checked={isInClass}
-          onChange={(e) => onAttendanceChange(student.id, e.target.checked)}
-          size="small"
-          sx={{
-            color: "action.active",
-            "&.Mui-checked": {
-              color: "success.main",
-              opacity: 0.85,
-            },
-          }}
-        />
+      <TableCell sx={{ pl: 2, pr: 1, width: hasHomework ? "1px" : undefined }}>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Checkbox
+            checked={isInClass}
+            onChange={(e) => onAttendanceChange(student.id, e.target.checked)}
+            size="small"
+            sx={{
+              color: "action.active",
+              "&.Mui-checked": {
+                color: "success.main",
+                opacity: 0.85,
+              },
+            }}
+          />
+        </Box>
       </TableCell>
-      <TableCell component="th" scope="row" sx={{ fontWeight: 500, pl: 0.5 }}>
+      <TableCell component="th" scope="row" align="center" sx={{ fontWeight: 500, pl: 1, pr: 2, whiteSpace: "nowrap", width: hasHomework ? "1px" : undefined }}>
         {student.name}
       </TableCell>
+      <PaymentCell
+        status={paymentStatus}
+        onChange={(status) => onPaymentChange(student.id, status)}
+        compact={hasHomework}
+      />
       {homeworkForWeek.map((hw) => (
         <CompletionCell
           key={hw.id}
@@ -173,9 +218,13 @@ const WeekContent = ({
   weekHeading,
   students,
   attendanceByStudentId,
+  payments,
+  termKey,
+  weekIndex,
   homeworkForWeek,
   completions,
   onAttendanceChange,
+  onPaymentChange,
   onCompletionChange,
   onAddHomework,
   onDeleteHomework,
@@ -183,13 +232,18 @@ const WeekContent = ({
   weekHeading: string;
   students: Student[];
   attendanceByStudentId: Record<string, boolean>;
+  payments: Record<string, PaymentStatus>;
+  termKey: string;
+  weekIndex: number;
   homeworkForWeek: Homework[];
   completions: Record<string, boolean>;
   onAttendanceChange: (studentId: string, inClass: boolean) => void;
+  onPaymentChange: (studentId: string, status: PaymentStatus) => void;
   onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
   onAddHomework: () => void;
   onDeleteHomework: (hwId: string) => void;
 }) => {
+  const hasHomework = homeworkForWeek.length > 0;
   return (
     <Box>
       <Typography variant="h6" sx={{ mb: 2 }}>
@@ -199,10 +253,11 @@ const WeekContent = ({
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={{ px: 0.5, py: 1, fontWeight: 600, width: 60 }}>
+              <TableCell align="center" sx={{ pl: 2, pr: 1, py: 1, fontWeight: 600, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}>
                 In class
               </TableCell>
-              <TableCell sx={{ fontWeight: 600, pl: 0.5, width: 140 }}>Student</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, pl: 1, pr: 2, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}>Student</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, pl: 1, pr: 2, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}>Payment</TableCell>
               {homeworkForWeek.map((hw) => (
                 <TableCell key={hw.id} align="center" sx={{ minWidth: 120 }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
@@ -229,9 +284,11 @@ const WeekContent = ({
                 key={student.id}
                 student={student}
                 isInClass={!!attendanceByStudentId[student.id]}
+                paymentStatus={payments[`${student.id}-${termKey}-${weekIndex}`] ?? "unpaid"}
                 homeworkForWeek={homeworkForWeek}
                 completions={completions}
                 onAttendanceChange={onAttendanceChange}
+                onPaymentChange={onPaymentChange}
                 onCompletionChange={onCompletionChange}
               />
             ))}
@@ -261,6 +318,7 @@ const ClassPage = () => {
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(1);
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, boolean>>({});
   const [completions, setCompletions] = useState<CompletionMap>({});
+  const [payments, setPayments] = useState<Record<string, PaymentStatus>>(classData?.payments ?? {});
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -331,6 +389,13 @@ const ClassPage = () => {
     setAttendanceByStudentId((prev) => ({ ...prev, [studentId]: inClass }));
   };
 
+  const handlePaymentChange = (studentId: string, status: PaymentStatus) => {
+    const key = `${studentId}-${selectedTermKey}-${selectedWeekIndex}`;
+    const updated = { ...payments, [key]: status };
+    setPayments(updated);
+    saveClass({ ...classData, students, homework, payments: updated });
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4, pb: 6 }}>
       <ClassHeader
@@ -349,9 +414,13 @@ const ClassPage = () => {
         weekHeading={weekHeading}
         students={students}
         attendanceByStudentId={attendanceByStudentId}
+        payments={payments}
+        termKey={selectedTermKey}
+        weekIndex={selectedWeekIndex}
         homeworkForWeek={homeworkForWeek}
         completions={completions}
         onAttendanceChange={handleAttendanceChange}
+        onPaymentChange={handlePaymentChange}
         onCompletionChange={setCompletion}
         onAddHomework={() => setAddDialogOpen(true)}
         onDeleteHomework={setPendingDeleteId}

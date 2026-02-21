@@ -16,6 +16,8 @@ export interface CompletionRecord {
   completed: boolean;
 }
 
+export type PaymentStatus = "unpaid" | "paid_cash" | "paid_online";
+
 export interface ClassData {
   id: string;
   classLevel: string;
@@ -25,6 +27,7 @@ export interface ClassData {
   name: string; // computed display name
   students: Student[];
   homework: Homework[];
+  payments?: Record<string, PaymentStatus>; // key: `${studentId}-${termKey}-${weekIndex}`
 }
 
 export type CompletionMap = Record<string, boolean>; // key: `${studentId}-${homeworkId}`
