@@ -10,12 +10,6 @@ export interface Homework {
   weekIndex: number; // 1-based index within that term's week list
 }
 
-export interface CompletionRecord {
-  studentId: string;
-  homeworkId: string;
-  completed: boolean;
-}
-
 export type PaymentStatus = "unpaid" | "paid_cash" | "paid_online";
 
 export interface ClassData {

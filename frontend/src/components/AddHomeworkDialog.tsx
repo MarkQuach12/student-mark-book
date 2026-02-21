@@ -1,10 +1,10 @@
-import { useState } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import { useSimpleDialog } from "../hooks/useSimpleDialog";
 
 interface AddHomeworkDialogProps {
   open: boolean;
@@ -13,27 +13,12 @@ interface AddHomeworkDialogProps {
   onAdd: (title: string) => void;
 }
 
-const AddHomeworkDialog = ({ open, weekLabel, onClose, onAdd }: AddHomeworkDialogProps) => {
-  const [title, setTitle] = useState("");
-  const [error, setError] = useState("");
-
-  const handleClose = () => {
-    setTitle("");
-    setError("");
-    onClose();
-  };
-
-  const handleAdd = () => {
-    const trimmed = title.trim();
-    if (!trimmed) {
-      setError("Title is required");
-      return;
-    }
-    onAdd(trimmed);
-    setTitle("");
-    setError("");
-    onClose();
-  };
+export default function AddHomeworkDialog({ open, weekLabel, onClose, onAdd }: AddHomeworkDialogProps) {
+  const { value, error, handleChange, handleClose, handleAdd } = useSimpleDialog(
+    onAdd,
+    onClose,
+    "Title is required"
+  );
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
@@ -44,14 +29,9 @@ const AddHomeworkDialog = ({ open, weekLabel, onClose, onAdd }: AddHomeworkDialo
           label="Homework title"
           fullWidth
           margin="normal"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            if (error) setError("");
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleAdd();
-          }}
+          value={value}
+          onChange={(e) => handleChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           error={!!error}
           helperText={error || ""}
         />
@@ -64,6 +44,4 @@ const AddHomeworkDialog = ({ open, weekLabel, onClose, onAdd }: AddHomeworkDialo
       </DialogActions>
     </Dialog>
   );
-};
-
-export default AddHomeworkDialog;
+}

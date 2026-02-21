@@ -1,21 +1,13 @@
 import type { ClassData } from "../pages/classPage/types";
-
-const CLASSES_KEY = "classes";
+import { STORAGE_KEYS } from "./constants";
+import { getArrayFromStorage, setInStorage } from "./storageUtils";
 
 export function getClasses(): ClassData[] {
-  try {
-    const raw = localStorage.getItem(CLASSES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return getArrayFromStorage<ClassData>(STORAGE_KEYS.CLASSES);
 }
 
 export function getClassById(id: string): ClassData | null {
-  const classes = getClasses();
-  return classes.find((c) => c.id === id) ?? null;
+  return getClasses().find((c) => c.id === id) ?? null;
 }
 
 export function saveClass(classData: ClassData): void {
@@ -26,11 +18,9 @@ export function saveClass(classData: ClassData): void {
   } else {
     classes.push(classData);
   }
-  localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+  setInStorage(STORAGE_KEYS.CLASSES, classes);
 }
 
 export function deleteClass(id: string): void {
-  const classes = getClasses().filter((c) => c.id !== id);
-  localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+  setInStorage(STORAGE_KEYS.CLASSES, getClasses().filter((c) => c.id !== id));
 }
-

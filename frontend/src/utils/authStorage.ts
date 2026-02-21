@@ -1,51 +1,30 @@
-const AUTH_USERS_KEY = "auth_users";
-const AUTH_USER_KEY = "auth_user";
+import type { CurrentUser, StoredUser } from "../types/auth";
+import { STORAGE_KEYS } from "./constants";
+import { getArrayFromStorage, getSingleFromStorage, removeFromStorage, setInStorage } from "./storageUtils";
 
-export interface StoredUser {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface CurrentUser {
-  name: string;
-  email: string;
-}
+export type { StoredUser, CurrentUser };
 
 export function getUsers(): StoredUser[] {
-  try {
-    const raw = localStorage.getItem(AUTH_USERS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return getArrayFromStorage<StoredUser>(STORAGE_KEYS.USERS);
 }
 
 export function addUser(user: StoredUser): void {
   const users = getUsers();
   users.push(user);
-  localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users));
+  setInStorage(STORAGE_KEYS.USERS, users);
 }
 
 export function getCurrentUser(): CurrentUser | null {
-  try {
-    const raw = localStorage.getItem(AUTH_USER_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CurrentUser;
-    return parsed?.name != null && parsed?.email != null ? parsed : null;
-  } catch {
-    return null;
-  }
+  const parsed = getSingleFromStorage<CurrentUser>(STORAGE_KEYS.CURRENT_USER);
+  return parsed?.name != null && parsed?.email != null ? parsed : null;
 }
 
 export function setCurrentUser(user: CurrentUser): void {
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  setInStorage(STORAGE_KEYS.CURRENT_USER, user);
 }
 
 export function clearCurrentUser(): void {
-  localStorage.removeItem(AUTH_USER_KEY);
+  removeFromStorage(STORAGE_KEYS.CURRENT_USER);
 }
 
 export function findUserByEmail(email: string): StoredUser | undefined {

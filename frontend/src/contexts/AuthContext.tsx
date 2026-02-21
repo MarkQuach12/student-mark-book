@@ -6,11 +6,11 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import type { CurrentUser } from "../types/auth";
 import {
   getCurrentUser,
   setCurrentUser as persistCurrentUser,
   clearCurrentUser as persistClearCurrentUser,
-  type CurrentUser,
 } from "../utils/authStorage";
 
 interface AuthContextValue {

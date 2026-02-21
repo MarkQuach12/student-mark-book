@@ -1,324 +1,35 @@
 import { useCallback, useState } from "react";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import Container from "@mui/material/Container";
-import FormControl from "@mui/material/FormControl";
-import IconButton from "@mui/material/IconButton";
-import MenuItem from "@mui/material/MenuItem";
-import Paper from "@mui/material/Paper";
-import Select from "@mui/material/Select";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate, useParams } from "react-router-dom";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Typography from "@mui/material/Typography";
+import { useNavigate, useParams } from "react-router-dom";
 import { getClassById, saveClass } from "../utils/classStorage";
 import type { CompletionMap, Homework, PaymentStatus, Student } from "./classPage/types";
-import { TERMS, getTermByKey } from "./classPage/termData";
+import { getTermByKey } from "./classPage/termData";
+import { getHomeworkForWeek } from "./classPage/sampleData";
 import AddHomeworkDialog from "../components/AddHomeworkDialog";
 import AddStudentDialog from "../components/AddStudentDialog";
+import ClassHeader from "../components/ClassHeader";
+import TermSelector from "../components/TermSelector";
+import WeekContent from "../components/WeekContent";
+import WeekTabs from "../components/WeekTabs";
 
-const ClassHeader = ({
-  className,
-  studentCount,
-  totalHomework,
-  onAddStudent,
-}: {
-  className: string;
-  studentCount: number;
-  totalHomework: number;
-  onAddStudent: () => void;
-}) => {
-  return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {className}
-      </Typography>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Typography variant="body2" color="text.secondary">
-          {studentCount} students · {totalHomework} homework items
-        </Typography>
-        <Button size="small" variant="outlined" onClick={onAddStudent}>
-          + Add Student
-        </Button>
-      </Box>
-    </Box>
-  );
-};
-
-const TermSelector = ({
-  selectedTermKey,
-  onTermChange,
-}: {
-  selectedTermKey: string;
-  onTermChange: (key: string) => void;
-}) => {
-  return (
-    <FormControl size="small" sx={{ minWidth: 180, mb: 2 }}>
-      <Select
-        value={selectedTermKey}
-        onChange={(e) => onTermChange(e.target.value)}
-      >
-        {TERMS.map((t) => (
-          <MenuItem key={t.key} value={t.key}>
-            {t.label}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-
-const WeekTabs = ({
-  selectedTermKey,
-  selectedWeekIndex,
-  onWeekChange,
-}: {
-  selectedTermKey: string;
-  selectedWeekIndex: number;
-  onWeekChange: (weekIndex: number) => void;
-}) => {
-  const term = getTermByKey(selectedTermKey);
-  if (!term) return null;
-  return (
-    <Tabs
-      value={selectedWeekIndex - 1}
-      onChange={(_, value) => onWeekChange((value as number) + 1)}
-      variant="scrollable"
-      scrollButtons="auto"
-      sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}
-    >
-      {term.weeks.map((week, i) => (
-        <Tab key={i} label={week.label} value={i} />
-      ))}
-    </Tabs>
-  );
-};
-
-const CompletionCell = ({
-  completed,
-  onChange,
-}: {
-  completed: boolean;
-  onChange: (completed: boolean) => void;
-}) => {
-  return (
-    <TableCell padding="checkbox" align="center">
-      <Checkbox
-        checked={completed}
-        onChange={(e) => onChange(e.target.checked)}
-        color="primary"
-      />
-    </TableCell>
-  );
-};
-
-const PaymentCell = ({
-  status,
-  onChange,
-  compact = true,
-}: {
-  status: PaymentStatus;
-  onChange: (status: PaymentStatus) => void;
-  compact?: boolean;
-}) => {
-  const isPaid = status === "paid_cash" || status === "paid_online";
-  return (
-    <TableCell sx={{ pl: 1, pr: 2, width: compact ? "1px" : undefined }}>
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-      <Select
-        size="small"
-        value={status}
-        onChange={(e) => onChange(e.target.value as PaymentStatus)}
-        sx={{
-          fontSize: "0.75rem",
-          minWidth: 80,
-          backgroundColor: isPaid ? "success.light" : undefined,
-          "& .MuiSelect-select": { py: 0.5, px: 1 },
-        }}
-      >
-        <MenuItem value="unpaid">Unpaid</MenuItem>
-        <MenuItem value="paid_cash">Cash</MenuItem>
-        <MenuItem value="paid_online">Online</MenuItem>
-      </Select>
-      </Box>
-    </TableCell>
-  );
-};
-
-const StudentRow = ({
-  student,
-  isInClass,
-  paymentStatus,
-  homeworkForWeek,
-  completions,
-  onAttendanceChange,
-  onPaymentChange,
-  onCompletionChange,
-}: {
-  student: Student;
-  isInClass: boolean;
-  paymentStatus: PaymentStatus;
-  homeworkForWeek: Homework[];
-  completions: Record<string, boolean>;
-  onAttendanceChange: (studentId: string, inClass: boolean) => void;
-  onPaymentChange: (studentId: string, status: PaymentStatus) => void;
-  onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
-}) => {
-  const hasHomework = homeworkForWeek.length > 0;
-  return (
-    <TableRow hover>
-      <TableCell sx={{ pl: 2, pr: 1, width: hasHomework ? "1px" : undefined }}>
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <Checkbox
-            checked={isInClass}
-            onChange={(e) => onAttendanceChange(student.id, e.target.checked)}
-            size="small"
-            sx={{
-              color: "action.active",
-              "&.Mui-checked": {
-                color: "success.main",
-                opacity: 0.85,
-              },
-            }}
-          />
-        </Box>
-      </TableCell>
-      <TableCell component="th" scope="row" align="center" sx={{ fontWeight: 500, pl: 1, pr: 2, whiteSpace: "nowrap", width: hasHomework ? "1px" : undefined }}>
-        {student.name}
-      </TableCell>
-      <PaymentCell
-        status={paymentStatus}
-        onChange={(status) => onPaymentChange(student.id, status)}
-        compact={hasHomework}
-      />
-      {homeworkForWeek.map((hw) => (
-        <CompletionCell
-          key={hw.id}
-          completed={!!completions[`${student.id}-${hw.id}`]}
-          onChange={(completed) => onCompletionChange(student.id, hw.id, completed)}
-        />
-      ))}
-    </TableRow>
-  );
-};
-
-const WeekContent = ({
-  weekHeading,
-  students,
-  attendanceByStudentId,
-  payments,
-  termKey,
-  weekIndex,
-  homeworkForWeek,
-  completions,
-  onAttendanceChange,
-  onPaymentChange,
-  onCompletionChange,
-  onAddHomework,
-  onDeleteHomework,
-}: {
-  weekHeading: string;
-  students: Student[];
-  attendanceByStudentId: Record<string, boolean>;
-  payments: Record<string, PaymentStatus>;
-  termKey: string;
-  weekIndex: number;
-  homeworkForWeek: Homework[];
-  completions: Record<string, boolean>;
-  onAttendanceChange: (studentId: string, inClass: boolean) => void;
-  onPaymentChange: (studentId: string, status: PaymentStatus) => void;
-  onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
-  onAddHomework: () => void;
-  onDeleteHomework: (hwId: string) => void;
-}) => {
-  const hasHomework = homeworkForWeek.length > 0;
-  return (
-    <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        {weekHeading} – Homework
-      </Typography>
-      <Paper variant="outlined" sx={{ overflow: "auto" }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" sx={{ pl: 2, pr: 1, py: 1, fontWeight: 600, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}>
-                In class
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, pl: 1, pr: 2, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}>Student</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, pl: 1, pr: 2, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}>Payment</TableCell>
-              {homeworkForWeek.map((hw) => (
-                <TableCell key={hw.id} align="center" sx={{ minWidth: 120 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
-                    <span>{hw.title}</span>
-                    <Tooltip title="Delete homework">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDeleteHomework(hw.id)}
-                        aria-label={`Delete ${hw.title}`}
-                        sx={{ opacity: 0.5, "&:hover": { opacity: 1 } }}
-                      >
-                        <DeleteIcon fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {students.map((student) => (
-              <StudentRow
-                key={student.id}
-                student={student}
-                isInClass={!!attendanceByStudentId[student.id]}
-                paymentStatus={payments[`${student.id}-${termKey}-${weekIndex}`] ?? "unpaid"}
-                homeworkForWeek={homeworkForWeek}
-                completions={completions}
-                onAttendanceChange={onAttendanceChange}
-                onPaymentChange={onPaymentChange}
-                onCompletionChange={onCompletionChange}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
-      <Box sx={{ mt: 2 }}>
-        <Button variant="outlined" size="small" onClick={onAddHomework}>
-          + Add Homework
-        </Button>
-      </Box>
-    </Box>
-  );
-};
-
-const getHomeworkForWeek = (homework: Homework[], termKey: string, weekIndex: number): Homework[] =>
-  homework.filter((h) => h.termKey === termKey && h.weekIndex === weekIndex);
-
-const ClassPage = () => {
+function ClassPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const classData = id ? getClassById(id) : null;
 
-  const [students, setStudents] = useState<Student[]>(classData?.students ?? []);
-  const [homework, setHomework] = useState<Homework[]>(classData?.homework ?? []);
+  const [students, setStudents] = useState<Student[]>(() => classData?.students ?? []);
+  const [homework, setHomework] = useState<Homework[]>(() => classData?.homework ?? []);
   const [selectedTermKey, setSelectedTermKey] = useState("term1");
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(1);
   const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, boolean>>({});
   const [completions, setCompletions] = useState<CompletionMap>({});
-  const [payments, setPayments] = useState<Record<string, PaymentStatus>>(classData?.payments ?? {});
+  const [payments, setPayments] = useState<Record<string, PaymentStatus>>(() => classData?.payments ?? {});
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -457,6 +168,6 @@ const ClassPage = () => {
       </Dialog>
     </Container>
   );
-};
+}
 
 export default ClassPage;

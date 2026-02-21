@@ -1,10 +1,10 @@
-import { useState } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import { useSimpleDialog } from "../hooks/useSimpleDialog";
 
 interface AddStudentDialogProps {
   open: boolean;
@@ -12,27 +12,12 @@ interface AddStudentDialogProps {
   onAdd: (name: string) => void;
 }
 
-const AddStudentDialog = ({ open, onClose, onAdd }: AddStudentDialogProps) => {
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-
-  const handleClose = () => {
-    setName("");
-    setError("");
-    onClose();
-  };
-
-  const handleAdd = () => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setError("Name is required");
-      return;
-    }
-    onAdd(trimmed);
-    setName("");
-    setError("");
-    onClose();
-  };
+export default function AddStudentDialog({ open, onClose, onAdd }: AddStudentDialogProps) {
+  const { value, error, handleChange, handleClose, handleAdd } = useSimpleDialog(
+    onAdd,
+    onClose,
+    "Name is required"
+  );
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
@@ -43,14 +28,9 @@ const AddStudentDialog = ({ open, onClose, onAdd }: AddStudentDialogProps) => {
           label="Student name"
           fullWidth
           margin="normal"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            if (error) setError("");
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleAdd();
-          }}
+          value={value}
+          onChange={(e) => handleChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           error={!!error}
           helperText={error || ""}
         />
@@ -63,6 +43,4 @@ const AddStudentDialog = ({ open, onClose, onAdd }: AddStudentDialogProps) => {
       </DialogActions>
     </Dialog>
   );
-};
-
-export default AddStudentDialog;
+}

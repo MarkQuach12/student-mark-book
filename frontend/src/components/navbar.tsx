@@ -13,24 +13,13 @@ import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { getInitials } from "../utils/stringUtils";
 import CreateClassModal from "./CreateClassModal";
 
-function getInitials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((s) => s[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-function Navbar() {
+export default function Navbar() {
   const navigate = useNavigate();
   const { user: currentUser, clearUser } = useAuth();
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
-    null
-  );
+  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const [modalOpen, setModalOpen] = React.useState(false);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -160,4 +149,3 @@ function Navbar() {
     </>
   );
 }
-export default Navbar;
