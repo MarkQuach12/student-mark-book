@@ -1,11 +1,12 @@
 package com.markbook.backend.controller;
 
-import com.markbook.backend.model.Payment;
+import com.markbook.backend.dto.PaymentDTO;
+import com.markbook.backend.dto.request.UpdatePaymentRequest;
 import com.markbook.backend.service.PaymentService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,31 +20,19 @@ public class PaymentController {
     }
 
     @GetMapping("/classes/{classId}/payments")
-    public List<Map<String, Object>> getPayments(@PathVariable UUID classId) {
+    public List<PaymentDTO> getPayments(@PathVariable UUID classId) {
         return paymentService.getPaymentsByClassId(classId).stream()
-                .map(p -> Map.<String, Object>of(
-                        "studentId", p.getStudent().getId(),
-                        "termKey", p.getTerm().getKey(),
-                        "weekIndex", p.getWeekIndex(),
-                        "status", p.getStatus()
-                ))
+                .map(PaymentDTO::from)
                 .toList();
     }
 
     @PutMapping("/payments")
-    public Map<String, Object> updatePayment(@RequestBody Map<String, Object> body) {
-        Payment payment = paymentService.updatePayment(
-                UUID.fromString((String) body.get("studentId")),
-                (String) body.get("termKey"),
-                ((Number) body.get("weekIndex")).shortValue(),
-                (String) body.get("status")
-        );
-
-        return Map.of(
-                "studentId", payment.getStudent().getId(),
-                "termKey", payment.getTerm().getKey(),
-                "weekIndex", payment.getWeekIndex(),
-                "status", payment.getStatus()
-        );
+    public PaymentDTO updatePayment(@RequestBody @Valid UpdatePaymentRequest body) {
+        return PaymentDTO.from(paymentService.updatePayment(
+                body.studentId(),
+                body.termKey(),
+                body.weekIndex(),
+                body.status()
+        ));
     }
 }

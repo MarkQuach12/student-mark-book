@@ -1,13 +1,16 @@
 package com.markbook.backend.service;
 
+import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class HomeworkService {
 
@@ -38,11 +41,13 @@ public class HomeworkService {
         return homeworkRepository.findByClassEntityIdAndTermKeyAndWeekIndex(classId, termKey, weekIndex);
     }
 
+    @Transactional
     public Homework createHomework(UUID classId, String title, String termKey, Short weekIndex) {
+        log.info("Creating homework title='{}' for classId={} termKey={} weekIndex={}", title, classId, termKey, weekIndex);
         ClassEntity classEntity = classRepository.findById(classId)
-                .orElseThrow(() -> new RuntimeException("Class not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
         Term term = termRepository.findById(termKey)
-                .orElseThrow(() -> new RuntimeException("Term not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Term not found"));
 
         Homework homework = new Homework();
         homework.setClassEntity(classEntity);
@@ -53,7 +58,9 @@ public class HomeworkService {
         return homeworkRepository.save(homework);
     }
 
+    @Transactional
     public void deleteHomework(UUID id) {
+        log.warn("Deleting homework id={}", id);
         homeworkRepository.deleteById(id);
     }
 
@@ -62,17 +69,20 @@ public class HomeworkService {
         return completionRepository.findByClassIdWithFetch(classId);
     }
 
+    @Transactional
     public HomeworkCompletion toggleCompletion(UUID studentId, UUID homeworkId) {
         return completionRepository.findByStudentIdAndHomeworkId(studentId, homeworkId)
                 .map(existing -> {
+                    log.debug("Toggling completion for studentId={} homeworkId={} to completed={}", studentId, homeworkId, !existing.getCompleted());
                     existing.setCompleted(!existing.getCompleted());
                     return completionRepository.save(existing);
                 })
                 .orElseGet(() -> {
+                    log.debug("Creating new completion for studentId={} homeworkId={}", studentId, homeworkId);
                     Student student = studentRepository.findById(studentId)
-                            .orElseThrow(() -> new RuntimeException("Student not found"));
+                            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
                     Homework homework = homeworkRepository.findById(homeworkId)
-                            .orElseThrow(() -> new RuntimeException("Homework not found"));
+                            .orElseThrow(() -> new ResourceNotFoundException("Homework not found"));
 
                     HomeworkCompletion completion = new HomeworkCompletion();
                     completion.setStudent(student);

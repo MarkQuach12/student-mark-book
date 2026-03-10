@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface HomeworkCompletionRepository extends JpaRepository<HomeworkCompletion, UUID> {
-    List<HomeworkCompletion> findByHomeworkClassEntityId(UUID classId);
     Optional<HomeworkCompletion> findByStudentIdAndHomeworkId(UUID studentId, UUID homeworkId);
 
     @Query("SELECT c FROM HomeworkCompletion c JOIN FETCH c.student JOIN FETCH c.homework WHERE c.homework.classEntity.id = :classId")

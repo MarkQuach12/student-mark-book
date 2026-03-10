@@ -35,7 +35,7 @@ export function invalidateCache(prefix: string): void {
   }
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────── ────────────────────────────────
 
 function getUserId(): string {
   const user = getCurrentUser();
@@ -103,7 +103,9 @@ export async function fetchClassOverview(classId: string): Promise<ClassOverview
   const cached = getCached<ClassOverviewResponse>(key);
   if (cached) return cached;
 
-  const res = await fetch(`${API_BASE}/classes/${classId}/overview`);
+  const res = await fetch(`${API_BASE}/classes/${classId}/overview`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   const data = await handleResponse<ClassOverviewResponse>(res);
   setCache(key, data);
   return data;
@@ -141,7 +143,7 @@ export async function createClass(data: {
 }
 
 export async function deleteClass(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
+  const res = await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("classes");
   invalidateCache(`overview:${id}`);
@@ -150,14 +152,16 @@ export async function deleteClass(id: string): Promise<void> {
 // ── Students ─────────────────────────────────────────────────────────
 
 export async function fetchStudents(classId: string): Promise<Student[]> {
-  const res = await fetch(`${API_BASE}/classes/${classId}/students`);
+  const res = await fetch(`${API_BASE}/classes/${classId}/students`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   return handleResponse<Student[]>(res);
 }
 
 export async function addStudent(classId: string, name: string): Promise<Student> {
   const res = await fetch(`${API_BASE}/classes/${classId}/students`, {
     method: "POST",
-    headers: headers(),
+    headers: headers({ "X-User-Id": getUserId() }),
     body: JSON.stringify({ name }),
   });
   const result = await handleResponse<Student>(res);
@@ -166,21 +170,25 @@ export async function addStudent(classId: string, name: string): Promise<Student
 }
 
 export async function deleteStudent(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/students/${id}`, { method: "DELETE" });
+  const res = await fetch(`${API_BASE}/students/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
 // ── Terms ────────────────────────────────────────────────────────────
 
 export async function fetchTerms(): Promise<TermPeriod[]> {
-  const res = await fetch(`${API_BASE}/terms`);
+  const res = await fetch(`${API_BASE}/terms`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   return handleResponse<TermPeriod[]>(res);
 }
 
 // ── Attendance ───────────────────────────────────────────────────────
 
 export async function fetchAttendance(classId: string): Promise<ApiAttendance[]> {
-  const res = await fetch(`${API_BASE}/classes/${classId}/attendance`);
+  const res = await fetch(`${API_BASE}/classes/${classId}/attendance`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   return handleResponse<ApiAttendance[]>(res);
 }
 
@@ -192,7 +200,7 @@ export async function updateAttendance(data: {
 }): Promise<ApiAttendance> {
   const res = await fetch(`${API_BASE}/attendance`, {
     method: "PUT",
-    headers: headers(),
+    headers: headers({ "X-User-Id": getUserId() }),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiAttendance>(res);
@@ -203,7 +211,9 @@ export async function updateAttendance(data: {
 // ── Homework ─────────────────────────────────────────────────────────
 
 export async function fetchHomework(classId: string): Promise<Homework[]> {
-  const res = await fetch(`${API_BASE}/classes/${classId}/homework`);
+  const res = await fetch(`${API_BASE}/classes/${classId}/homework`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   return handleResponse<Homework[]>(res);
 }
 
@@ -213,7 +223,7 @@ export async function createHomework(
 ): Promise<Homework> {
   const res = await fetch(`${API_BASE}/classes/${classId}/homework`, {
     method: "POST",
-    headers: headers(),
+    headers: headers({ "X-User-Id": getUserId() }),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<Homework>(res);
@@ -222,7 +232,7 @@ export async function createHomework(
 }
 
 export async function deleteHomework(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/homework/${id}`, { method: "DELETE" });
+  const res = await fetch(`${API_BASE}/homework/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("overview:");
 }
@@ -230,7 +240,9 @@ export async function deleteHomework(id: string): Promise<void> {
 // ── Completions ──────────────────────────────────────────────────────
 
 export async function fetchCompletions(classId: string): Promise<ApiCompletion[]> {
-  const res = await fetch(`${API_BASE}/classes/${classId}/completions`);
+  const res = await fetch(`${API_BASE}/classes/${classId}/completions`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   return handleResponse<ApiCompletion[]>(res);
 }
 
@@ -240,7 +252,7 @@ export async function toggleCompletion(data: {
 }): Promise<ApiCompletion> {
   const res = await fetch(`${API_BASE}/completions`, {
     method: "PUT",
-    headers: headers(),
+    headers: headers({ "X-User-Id": getUserId() }),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiCompletion>(res);
@@ -251,7 +263,9 @@ export async function toggleCompletion(data: {
 // ── Payments ─────────────────────────────────────────────────────────
 
 export async function fetchPayments(classId: string): Promise<ApiPayment[]> {
-  const res = await fetch(`${API_BASE}/classes/${classId}/payments`);
+  const res = await fetch(`${API_BASE}/classes/${classId}/payments`, {
+    headers: { "X-User-Id": getUserId() },
+  });
   return handleResponse<ApiPayment[]>(res);
 }
 
@@ -263,7 +277,7 @@ export async function updatePayment(data: {
 }): Promise<ApiPayment> {
   const res = await fetch(`${API_BASE}/payments`, {
     method: "PUT",
-    headers: headers(),
+    headers: headers({ "X-User-Id": getUserId() }),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiPayment>(res);

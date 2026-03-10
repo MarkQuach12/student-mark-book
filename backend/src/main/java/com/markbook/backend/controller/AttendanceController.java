@@ -1,11 +1,12 @@
 package com.markbook.backend.controller;
 
-import com.markbook.backend.model.Attendance;
+import com.markbook.backend.dto.AttendanceDTO;
+import com.markbook.backend.dto.request.UpdateAttendanceRequest;
 import com.markbook.backend.service.AttendanceService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,31 +20,19 @@ public class AttendanceController {
     }
 
     @GetMapping("/classes/{classId}/attendance")
-    public List<Map<String, Object>> getAttendance(@PathVariable UUID classId) {
+    public List<AttendanceDTO> getAttendance(@PathVariable UUID classId) {
         return attendanceService.getAttendanceByClassId(classId).stream()
-                .map(a -> Map.<String, Object>of(
-                        "studentId", a.getStudent().getId(),
-                        "termKey", a.getTerm().getKey(),
-                        "weekIndex", a.getWeekIndex(),
-                        "present", a.getPresent()
-                ))
+                .map(AttendanceDTO::from)
                 .toList();
     }
 
     @PutMapping("/attendance")
-    public Map<String, Object> updateAttendance(@RequestBody Map<String, Object> body) {
-        Attendance attendance = attendanceService.updateAttendance(
-                UUID.fromString((String) body.get("studentId")),
-                (String) body.get("termKey"),
-                ((Number) body.get("weekIndex")).shortValue(),
-                (Boolean) body.get("present")
-        );
-
-        return Map.of(
-                "studentId", attendance.getStudent().getId(),
-                "termKey", attendance.getTerm().getKey(),
-                "weekIndex", attendance.getWeekIndex(),
-                "present", attendance.getPresent()
-        );
+    public AttendanceDTO updateAttendance(@RequestBody @Valid UpdateAttendanceRequest body) {
+        return AttendanceDTO.from(attendanceService.updateAttendance(
+                body.studentId(),
+                body.termKey(),
+                body.weekIndex(),
+                body.present()
+        ));
     }
 }
