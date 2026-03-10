@@ -11,6 +11,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { CompletionMap, Homework, PaymentStatus, Student } from "./classPage/types";
 import type { TermPeriod } from "./classPage/termData";
 import type { ApiAttendance, ApiClass, ApiCompletion, ApiPayment } from "../services/api";
+import { findCurrentWeek } from "../utils/currentWeek";
 import {
   fetchClassOverview,
   addStudent as apiAddStudent,
@@ -66,6 +67,13 @@ function ClassPage() {
         setAllCompletions(data.completions);
         setAllPayments(data.payments);
         setTerms(data.terms);
+
+        // Auto-navigate to the current week based on today's date
+        const current = findCurrentWeek(data.terms);
+        if (current) {
+          setSelectedTermKey(current.termKey);
+          setSelectedWeekIndex(current.weekIndex);
+        }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
