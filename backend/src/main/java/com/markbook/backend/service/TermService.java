@@ -3,6 +3,7 @@ package com.markbook.backend.service;
 import com.markbook.backend.model.Term;
 import com.markbook.backend.repository.TermRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,7 +16,8 @@ public class TermService {
         this.termRepository = termRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Term> getAllTerms() {
-        return termRepository.findAllByOrderBySortOrderAsc();
+        return termRepository.findAllWithWeeks();
     }
 }

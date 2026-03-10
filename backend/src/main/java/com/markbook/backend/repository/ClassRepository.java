@@ -2,9 +2,15 @@ package com.markbook.backend.repository;
 
 import com.markbook.backend.model.ClassEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ClassRepository extends JpaRepository<ClassEntity, UUID> {
     List<ClassEntity> findByUserId(String userId);
+
+    @Query("SELECT DISTINCT c FROM ClassEntity c LEFT JOIN FETCH c.students WHERE c.id = :id")
+    Optional<ClassEntity> findByIdWithStudents(@Param("id") UUID id);
 }

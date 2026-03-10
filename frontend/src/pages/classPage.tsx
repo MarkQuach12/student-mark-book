@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -7,10 +8,18 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
 import { useNavigate, useParams } from "react-router-dom";
-import { getClassById, saveClass } from "../utils/classStorage";
 import type { CompletionMap, Homework, PaymentStatus, Student } from "./classPage/types";
-import { getTermByKey } from "./classPage/termData";
-import { getHomeworkForWeek } from "./classPage/sampleData";
+import type { TermPeriod } from "./classPage/termData";
+import type { ApiAttendance, ApiClass, ApiCompletion, ApiPayment } from "../services/api";
+import {
+  fetchClassOverview,
+  addStudent as apiAddStudent,
+  createHomework as apiCreateHomework,
+  deleteHomework as apiDeleteHomework,
+  updateAttendance as apiUpdateAttendance,
+  toggleCompletion as apiToggleCompletion,
+  updatePayment as apiUpdatePayment,
+} from "../services/api";
 import AddHomeworkDialog from "../components/AddHomeworkDialog";
 import AddStudentDialog from "../components/AddStudentDialog";
 import ClassHeader from "../components/ClassHeader";
@@ -21,18 +30,88 @@ import WeekTabs from "../components/WeekTabs";
 function ClassPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const classData = id ? getClassById(id) : null;
 
-  const [students, setStudents] = useState<Student[]>(() => classData?.students ?? []);
-  const [homework, setHomework] = useState<Homework[]>(() => classData?.homework ?? []);
+  // ── Data state ──
+  const [classInfo, setClassInfo] = useState<ApiClass | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [homework, setHomework] = useState<Homework[]>([]);
+  const [allAttendance, setAllAttendance] = useState<ApiAttendance[]>([]);
+  const [allCompletions, setAllCompletions] = useState<ApiCompletion[]>([]);
+  const [allPayments, setAllPayments] = useState<ApiPayment[]>([]);
+  const [terms, setTerms] = useState<TermPeriod[]>([]);
+
+  // ── UI state ──
   const [selectedTermKey, setSelectedTermKey] = useState("term1");
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(1);
-  const [attendanceByStudentId, setAttendanceByStudentId] = useState<Record<string, boolean>>({});
-  const [completions, setCompletions] = useState<CompletionMap>({});
-  const [payments, setPayments] = useState<Record<string, PaymentStatus>>(() => classData?.payments ?? {});
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ── Fetch all data on mount (single aggregate call) ──
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+
+    async function loadData() {
+      try {
+        const data = await fetchClassOverview(id!);
+        if (cancelled) return;
+
+        setClassInfo(data.classInfo);
+        setStudents(data.students);
+        setHomework(data.homework);
+        setAllAttendance(data.attendance);
+        setAllCompletions(data.completions);
+        setAllPayments(data.payments);
+        setTerms(data.terms);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load data");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadData();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  // ── Derived state ──
+  const attendanceByStudentId = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    for (const a of allAttendance) {
+      if (a.termKey === selectedTermKey && a.weekIndex === selectedWeekIndex) {
+        map[a.studentId] = a.present;
+      }
+    }
+    return map;
+  }, [allAttendance, selectedTermKey, selectedWeekIndex]);
+
+  const completions: CompletionMap = useMemo(() => {
+    const map: CompletionMap = {};
+    for (const c of allCompletions) {
+      map[`${c.studentId}-${c.homeworkId}`] = c.completed;
+    }
+    return map;
+  }, [allCompletions]);
+
+  const payments = useMemo(() => {
+    const map: Record<string, PaymentStatus> = {};
+    for (const p of allPayments) {
+      map[`${p.studentId}-${p.termKey}-${p.weekIndex}`] = p.status as PaymentStatus;
+    }
+    return map;
+  }, [allPayments]);
+
+  const currentTerm = useMemo(() => terms.find((t) => t.key === selectedTermKey), [terms, selectedTermKey]);
+
+  const homeworkForWeek = useMemo(
+    () => homework.filter((h) => h.termKey === selectedTermKey && h.weekIndex === selectedWeekIndex),
+    [homework, selectedTermKey, selectedWeekIndex]
+  );
+
+  // ── Handlers ──
 
   const handleTermChange = (key: string) => {
     setSelectedTermKey(key);
@@ -41,41 +120,176 @@ function ClassPage() {
 
   const setCompletion = useCallback(
     (studentId: string, homeworkId: string, completed: boolean) => {
-      const key = `${studentId}-${homeworkId}`;
-      setCompletions((prev) => ({ ...prev, [key]: completed }));
+      // Optimistic update
+      setAllCompletions((prev) => {
+        const idx = prev.findIndex((c) => c.studentId === studentId && c.homeworkId === homeworkId);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], completed };
+          return updated;
+        }
+        return [...prev, { studentId, homeworkId, completed }];
+      });
+      apiToggleCompletion({ studentId, homeworkId }).catch(() => {
+        // Revert on failure
+        setAllCompletions((prev) => {
+          const idx = prev.findIndex((c) => c.studentId === studentId && c.homeworkId === homeworkId);
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], completed: !completed };
+            return updated;
+          }
+          return prev;
+        });
+      });
     },
     []
   );
 
-  const handleAddStudent = (name: string) => {
-    if (!classData) return;
-    const newStudent: Student = { id: crypto.randomUUID(), name };
-    const updated = [...students, newStudent];
-    setStudents(updated);
-    saveClass({ ...classData, students: updated, homework });
+  const handleAddStudent = async (name: string) => {
+    if (!id) return;
+    try {
+      const newStudent = await apiAddStudent(id, name);
+      setStudents((prev) => [...prev, newStudent]);
+    } catch {
+      // Could show error toast
+    }
   };
 
-  const handleAddHomework = (title: string) => {
-    if (!classData) return;
-    const newHw: Homework = {
-      id: crypto.randomUUID(),
-      title,
+  const handleAddHomework = async (title: string) => {
+    if (!id) return;
+    try {
+      const newHw = await apiCreateHomework(id, {
+        title,
+        termKey: selectedTermKey,
+        weekIndex: selectedWeekIndex,
+      });
+      setHomework((prev) => [...prev, newHw]);
+    } catch {
+      // Could show error toast
+    }
+  };
+
+  const handleDeleteHomework = async (hwId: string) => {
+    try {
+      await apiDeleteHomework(hwId);
+      setHomework((prev) => prev.filter((hw) => hw.id !== hwId));
+    } catch {
+      // Could show error toast
+    }
+  };
+
+  const handleAttendanceChange = (studentId: string, inClass: boolean) => {
+    // Optimistic update
+    setAllAttendance((prev) => {
+      const idx = prev.findIndex(
+        (a) => a.studentId === studentId && a.termKey === selectedTermKey && a.weekIndex === selectedWeekIndex
+      );
+      const record: ApiAttendance = {
+        studentId,
+        termKey: selectedTermKey,
+        weekIndex: selectedWeekIndex,
+        present: inClass,
+      };
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = record;
+        return updated;
+      }
+      return [...prev, record];
+    });
+    apiUpdateAttendance({
+      studentId,
       termKey: selectedTermKey,
       weekIndex: selectedWeekIndex,
-    };
-    const updated = [...homework, newHw];
-    setHomework(updated);
-    saveClass({ ...classData, homework: updated, students });
+      present: inClass,
+    }).catch(() => {
+      // Revert on failure
+      setAllAttendance((prev) => {
+        const idx = prev.findIndex(
+          (a) => a.studentId === studentId && a.termKey === selectedTermKey && a.weekIndex === selectedWeekIndex
+        );
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], present: !inClass };
+          return updated;
+        }
+        return prev;
+      });
+    });
   };
 
-  const handleDeleteHomework = (hwId: string) => {
-    if (!classData) return;
-    const updated = homework.filter((hw) => hw.id !== hwId);
-    setHomework(updated);
-    saveClass({ ...classData, homework: updated, students });
+  const handlePaymentChange = (studentId: string, status: PaymentStatus) => {
+    const key = `${studentId}-${selectedTermKey}-${selectedWeekIndex}`;
+    const prevStatus = payments[key] ?? "unpaid";
+
+    // Optimistic update
+    setAllPayments((prev) => {
+      const idx = prev.findIndex(
+        (p) => p.studentId === studentId && p.termKey === selectedTermKey && p.weekIndex === selectedWeekIndex
+      );
+      const record: ApiPayment = {
+        studentId,
+        termKey: selectedTermKey,
+        weekIndex: selectedWeekIndex,
+        status,
+      };
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = record;
+        return updated;
+      }
+      return [...prev, record];
+    });
+
+    apiUpdatePayment({
+      studentId,
+      termKey: selectedTermKey,
+      weekIndex: selectedWeekIndex,
+      status,
+    }).catch(() => {
+      // Revert on failure
+      setAllPayments((prev) => {
+        const idx = prev.findIndex(
+          (p) => p.studentId === studentId && p.termKey === selectedTermKey && p.weekIndex === selectedWeekIndex
+        );
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], status: prevStatus };
+          return updated;
+        }
+        return prev;
+      });
+    });
   };
 
-  if (!classData) {
+  // ── Render ──
+
+  if (loading) {
+    return (
+      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
+        <Typography variant="h5" gutterBottom>
+          Error
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={() => navigate("/")}>
+          Back to Home
+        </Button>
+      </Container>
+    );
+  }
+
+  if (!classInfo || !currentTerm) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
         <Typography variant="h5" gutterBottom>
@@ -91,32 +305,20 @@ function ClassPage() {
     );
   }
 
-  const currentTerm = getTermByKey(selectedTermKey)!;
   const currentWeekInfo = currentTerm.weeks[selectedWeekIndex - 1];
   const weekHeading = `${currentWeekInfo.label} (${currentWeekInfo.dateRange})`;
-  const homeworkForWeek = getHomeworkForWeek(homework, selectedTermKey, selectedWeekIndex);
-
-  const handleAttendanceChange = (studentId: string, inClass: boolean) => {
-    setAttendanceByStudentId((prev) => ({ ...prev, [studentId]: inClass }));
-  };
-
-  const handlePaymentChange = (studentId: string, status: PaymentStatus) => {
-    const key = `${studentId}-${selectedTermKey}-${selectedWeekIndex}`;
-    const updated = { ...payments, [key]: status };
-    setPayments(updated);
-    saveClass({ ...classData, students, homework, payments: updated });
-  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4, pb: 6 }}>
       <ClassHeader
-        className={classData.name}
+        className={classInfo.name}
         studentCount={students.length}
         totalHomework={homework.length}
         onAddStudent={() => setAddStudentOpen(true)}
       />
-      <TermSelector selectedTermKey={selectedTermKey} onTermChange={handleTermChange} />
+      <TermSelector terms={terms} selectedTermKey={selectedTermKey} onTermChange={handleTermChange} />
       <WeekTabs
+        terms={terms}
         selectedTermKey={selectedTermKey}
         selectedWeekIndex={selectedWeekIndex}
         onWeekChange={setSelectedWeekIndex}

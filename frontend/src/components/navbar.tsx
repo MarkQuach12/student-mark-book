@@ -63,19 +63,21 @@ export default function Navbar() {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => setModalOpen(true)}
-              sx={{
-                mr: 2,
-                bgcolor: "primary.dark",
-                "&:hover": { bgcolor: "primary.main" },
-              }}
-            >
-              Create New Class
-            </Button>
+            {currentUser && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => setModalOpen(true)}
+                sx={{
+                  mr: 2,
+                  bgcolor: "primary.dark",
+                  "&:hover": { bgcolor: "primary.main" },
+                }}
+              >
+                Create New Class
+              </Button>
+            )}
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               {currentUser ? (
@@ -139,13 +141,15 @@ export default function Navbar() {
         </Container>
       </AppBar>
 
-      <CreateClassModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onClassCreated={() => {
-          window.dispatchEvent(new CustomEvent("classCreated"));
-        }}
-      />
+      {currentUser && (
+        <CreateClassModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onClassCreated={() => {
+            window.dispatchEvent(new CustomEvent("classCreated"));
+          }}
+        />
+      )}
     </>
   );
 }

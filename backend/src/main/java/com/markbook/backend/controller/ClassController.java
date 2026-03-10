@@ -1,5 +1,6 @@
 package com.markbook.backend.controller;
 
+import com.markbook.backend.dto.ClassOverviewDTO;
 import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.service.ClassService;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +54,11 @@ public class ClassController {
                 "endTime", created.getEndTime().toString(),
                 "name", created.getName()
         );
+    }
+
+    @GetMapping("/{id}/overview")
+    public ClassOverviewDTO getClassOverview(@PathVariable UUID id) {
+        return classService.getClassOverview(id);
     }
 
     @DeleteMapping("/{id}")

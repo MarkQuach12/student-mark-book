@@ -19,9 +19,6 @@ export interface ClassData {
   startTime: string;
   endTime: string;
   name: string; // computed display name
-  students: Student[];
-  homework: Homework[];
-  payments?: Record<string, PaymentStatus>; // key: `${studentId}-${termKey}-${weekIndex}`
 }
 
 export type CompletionMap = Record<string, boolean>; // key: `${studentId}-${homeworkId}`

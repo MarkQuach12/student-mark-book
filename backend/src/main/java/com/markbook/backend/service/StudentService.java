@@ -5,6 +5,7 @@ import com.markbook.backend.model.Student;
 import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.StudentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class StudentService {
         this.classRepository = classRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Student> getStudentsByClassId(UUID classId) {
         return studentRepository.findByClassEntityId(classId);
     }

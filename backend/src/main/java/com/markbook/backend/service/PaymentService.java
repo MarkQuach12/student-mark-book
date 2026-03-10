@@ -7,6 +7,7 @@ import com.markbook.backend.repository.PaymentRepository;
 import com.markbook.backend.repository.StudentRepository;
 import com.markbook.backend.repository.TermRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,8 +27,9 @@ public class PaymentService {
         this.termRepository = termRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Payment> getPaymentsByClassId(UUID classId) {
-        return paymentRepository.findByStudentClassEntityId(classId);
+        return paymentRepository.findByClassIdWithFetch(classId);
     }
 
     public Payment updatePayment(UUID studentId, String termKey, Short weekIndex, String status) {

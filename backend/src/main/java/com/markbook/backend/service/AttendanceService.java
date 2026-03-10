@@ -7,6 +7,7 @@ import com.markbook.backend.repository.AttendanceRepository;
 import com.markbook.backend.repository.StudentRepository;
 import com.markbook.backend.repository.TermRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,8 +27,9 @@ public class AttendanceService {
         this.termRepository = termRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Attendance> getAttendanceByClassId(UUID classId) {
-        return attendanceRepository.findByStudentClassEntityId(classId);
+        return attendanceRepository.findByClassIdWithFetch(classId);
     }
 
     public Attendance updateAttendance(UUID studentId, String termKey, Short weekIndex, Boolean present) {

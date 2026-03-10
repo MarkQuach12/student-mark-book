@@ -1,24 +1,49 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
-import { getClasses } from "../utils/classStorage";
+import { fetchClasses } from "../services/api";
 import type { ClassData } from "./classPage/types";
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [classes, setClasses] = useState<ClassData[]>(() => getClasses());
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadClasses = useCallback(async () => {
+    try {
+      const data = await fetchClasses();
+      setClasses(data);
+    } catch {
+      // Could show error toast
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const refresh = () => setClasses(getClasses());
+    loadClasses();
+  }, [loadClasses]);
+
+  useEffect(() => {
+    const refresh = () => { loadClasses(); };
     window.addEventListener("classCreated", refresh);
     return () => window.removeEventListener("classCreated", refresh);
-  }, []);
+  }, [loadClasses]);
+
+  if (loading) {
+    return (
+      <Box sx={{ pt: 12, pb: 4, textAlign: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ pt: 12, pb: 4 }}>
@@ -53,8 +78,7 @@ const LandingPage = () => {
                       {cls.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {cls.students.length}{" "}
-                      {cls.students.length === 1 ? "student" : "students"}
+                      {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
                     </Typography>
                   </CardContent>
                 </CardActionArea>

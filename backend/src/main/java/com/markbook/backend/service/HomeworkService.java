@@ -3,6 +3,7 @@ package com.markbook.backend.service;
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,8 +29,9 @@ public class HomeworkService {
         this.studentRepository = studentRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Homework> getHomeworkByClassId(UUID classId) {
-        return homeworkRepository.findByClassEntityId(classId);
+        return homeworkRepository.findByClassIdWithFetch(classId);
     }
 
     public List<Homework> getHomeworkByClassIdAndWeek(UUID classId, String termKey, Short weekIndex) {
@@ -55,8 +57,9 @@ public class HomeworkService {
         homeworkRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<HomeworkCompletion> getCompletionsByClassId(UUID classId) {
-        return completionRepository.findByHomeworkClassEntityId(classId);
+        return completionRepository.findByClassIdWithFetch(classId);
     }
 
     public HomeworkCompletion toggleCompletion(UUID studentId, UUID homeworkId) {

@@ -1,15 +1,16 @@
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import { getTermByKey } from "../pages/classPage/termData";
+import type { TermPeriod } from "../pages/classPage/termData";
 
 interface WeekTabsProps {
+  terms: TermPeriod[];
   selectedTermKey: string;
   selectedWeekIndex: number;
   onWeekChange: (weekIndex: number) => void;
 }
 
-export default function WeekTabs({ selectedTermKey, selectedWeekIndex, onWeekChange }: WeekTabsProps) {
-  const term = getTermByKey(selectedTermKey);
+export default function WeekTabs({ terms, selectedTermKey, selectedWeekIndex, onWeekChange }: WeekTabsProps) {
+  const term = terms.find((t) => t.key === selectedTermKey);
   if (!term) return null;
   return (
     <Tabs

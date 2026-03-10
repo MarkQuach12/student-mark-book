@@ -16,9 +16,9 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { saveClass } from "../utils/classStorage";
+import { createClass, addStudent } from "../services/api";
 import { validateTime, timeToMinutes } from "../utils/formValidation";
-import type { ClassData, Student } from "../pages/classPage/types";
+import type { ClassData } from "../pages/classPage/types";
 
 const CLASS_LEVELS = [
   "Y11 Standard",
@@ -71,6 +71,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
   const [endTime, setEndTime] = useState("");
   const [studentNames, setStudentNames] = useState<string[]>([""]);
   const [errors, setErrors] = useState<FormErrors>(NO_ERRORS);
+  const [saving, setSaving] = useState(false);
 
   const resetForm = () => {
     setClassLevel("");
@@ -79,6 +80,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
     setEndTime("");
     setStudentNames([""]);
     setErrors(NO_ERRORS);
+    setSaving(false);
   };
 
   const handleCancel = () => {
@@ -102,7 +104,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
     setStudentNames((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const newErrors: FormErrors = {
       classLevel: classLevel ? "" : "Required",
       dayOfWeek: dayOfWeek ? "" : "Required",
@@ -120,33 +122,32 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
 
     if (Object.values(newErrors).some(Boolean)) return;
 
-    const trimmedStart = startTime.trim();
-    const trimmedEnd = endTime.trim();
-    const displayName = `${classLevel} - ${dayOfWeek} ${trimmedStart}-${trimmedEnd}`;
+    setSaving(true);
 
-    const validStudents: Student[] = studentNames
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0)
-      .map((name) => ({
-        id: crypto.randomUUID(),
-        name,
-      }));
+    try {
+      const trimmedStart = startTime.trim();
+      const trimmedEnd = endTime.trim();
 
-    const newClass: ClassData = {
-      id: crypto.randomUUID(),
-      classLevel,
-      dayOfWeek,
-      startTime: trimmedStart,
-      endTime: trimmedEnd,
-      name: displayName,
-      students: validStudents,
-      homework: [],
-    };
+      const newClass = await createClass({
+        classLevel,
+        dayOfWeek,
+        startTime: trimmedStart,
+        endTime: trimmedEnd,
+      });
 
-    saveClass(newClass);
-    onClassCreated(newClass);
-    resetForm();
-    onClose();
+      // Add students in parallel
+      const validNames = studentNames.map((n) => n.trim()).filter((n) => n.length > 0);
+      if (validNames.length > 0) {
+        await Promise.all(validNames.map((name) => addStudent(newClass.id, name)));
+      }
+
+      onClassCreated(newClass);
+      resetForm();
+      onClose();
+    } catch (err) {
+      console.error("Failed to create class:", err);
+      setSaving(false);
+    }
   };
 
   return (
@@ -285,9 +286,9 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleCreate} variant="contained">
-          Create
+        <Button onClick={handleCancel} disabled={saving}>Cancel</Button>
+        <Button onClick={handleCreate} variant="contained" disabled={saving}>
+          {saving ? "Creating…" : "Create"}
         </Button>
       </DialogActions>
     </Dialog>
