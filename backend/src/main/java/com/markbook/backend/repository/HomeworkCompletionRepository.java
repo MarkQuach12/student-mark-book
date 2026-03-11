@@ -13,4 +13,6 @@ public interface HomeworkCompletionRepository extends JpaRepository<HomeworkComp
 
     @Query("SELECT c FROM HomeworkCompletion c JOIN FETCH c.student JOIN FETCH c.homework WHERE c.homework.classEntity.id = :classId")
     List<HomeworkCompletion> findByClassIdWithFetch(@Param("classId") UUID classId);
+
+    void deleteByStudentId(UUID studentId);
 }

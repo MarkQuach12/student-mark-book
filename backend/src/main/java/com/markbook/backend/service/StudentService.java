@@ -3,7 +3,10 @@ package com.markbook.backend.service;
 import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.model.Student;
+import com.markbook.backend.repository.AttendanceRepository;
 import com.markbook.backend.repository.ClassRepository;
+import com.markbook.backend.repository.HomeworkCompletionRepository;
+import com.markbook.backend.repository.PaymentRepository;
 import com.markbook.backend.repository.StudentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,10 +23,18 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final ClassRepository classRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final PaymentRepository paymentRepository;
+    private final HomeworkCompletionRepository homeworkCompletionRepository;
 
-    public StudentService(StudentRepository studentRepository, ClassRepository classRepository) {
+    public StudentService(StudentRepository studentRepository, ClassRepository classRepository,
+                          AttendanceRepository attendanceRepository, PaymentRepository paymentRepository,
+                          HomeworkCompletionRepository homeworkCompletionRepository) {
         this.studentRepository = studentRepository;
         this.classRepository = classRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.paymentRepository = paymentRepository;
+        this.homeworkCompletionRepository = homeworkCompletionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +62,10 @@ public class StudentService {
         if (!student.getClassEntity().getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
-        log.warn("Deleting student id={}", id);
+        log.warn("Deleting student id={} and all related records", id);
+        attendanceRepository.deleteByStudentId(id);
+        paymentRepository.deleteByStudentId(id);
+        homeworkCompletionRepository.deleteByStudentId(id);
         studentRepository.delete(student);
     }
 }

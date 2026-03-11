@@ -15,6 +15,7 @@ import { findCurrentWeek } from "../utils/currentWeek";
 import {
   fetchClassOverview,
   addStudent as apiAddStudent,
+  deleteStudent as apiDeleteStudent,
   createHomework as apiCreateHomework,
   deleteHomework as apiDeleteHomework,
   updateAttendance as apiUpdateAttendance,
@@ -23,6 +24,7 @@ import {
 } from "../services/api";
 import AddHomeworkDialog from "../components/AddHomeworkDialog";
 import AddStudentDialog from "../components/AddStudentDialog";
+import RemoveStudentDialog from "../components/RemoveStudentDialog";
 import ClassHeader from "../components/ClassHeader";
 import TermSelector from "../components/TermSelector";
 import WeekContent from "../components/WeekContent";
@@ -45,6 +47,7 @@ function ClassPage() {
   const [selectedTermKey, setSelectedTermKey] = useState("term1");
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(1);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [removeStudentOpen, setRemoveStudentOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -159,6 +162,15 @@ function ClassPage() {
     try {
       const newStudent = await apiAddStudent(id, name);
       setStudents((prev) => [...prev, newStudent]);
+    } catch {
+      // Could show error toast
+    }
+  };
+
+  const handleRemoveStudent = async (studentId: string) => {
+    try {
+      await apiDeleteStudent(studentId);
+      setStudents((prev) => prev.filter((s) => s.id !== studentId));
     } catch {
       // Could show error toast
     }
@@ -323,6 +335,7 @@ function ClassPage() {
         studentCount={students.length}
         totalHomework={homework.length}
         onAddStudent={() => setAddStudentOpen(true)}
+        onRemoveStudent={() => setRemoveStudentOpen(true)}
       />
       <TermSelector terms={terms} selectedTermKey={selectedTermKey} onTermChange={handleTermChange} />
       <WeekTabs
@@ -350,6 +363,12 @@ function ClassPage() {
         open={addStudentOpen}
         onClose={() => setAddStudentOpen(false)}
         onAdd={handleAddStudent}
+      />
+      <RemoveStudentDialog
+        open={removeStudentOpen}
+        students={students}
+        onClose={() => setRemoveStudentOpen(false)}
+        onRemove={handleRemoveStudent}
       />
       <AddHomeworkDialog
         open={addDialogOpen}
