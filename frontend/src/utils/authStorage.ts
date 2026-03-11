@@ -30,3 +30,11 @@ export function clearCurrentUser(): void {
 export function findUserByEmail(email: string): StoredUser | undefined {
   return getUsers().find((u) => u.email.toLowerCase() === email.toLowerCase());
 }
+
+export function updateUserInStorage(email: string, updates: Partial<StoredUser>): void {
+  const users = getUsers();
+  const index = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
+  if (index === -1) return;
+  users[index] = { ...users[index], ...updates };
+  setInStorage(STORAGE_KEYS.USERS, users);
+}

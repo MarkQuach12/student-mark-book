@@ -108,9 +108,9 @@ export default function Navbar() {
                     open={Boolean(anchorElUser)}
                     onClose={handleCloseUserMenu}
                   >
-                    <MenuItem component={Link} to="/profile" onClick={handleCloseUserMenu}>
+                    <MenuItem component={Link} to="/settings" onClick={handleCloseUserMenu}>
                       <Typography sx={{ textAlign: "center", color: "black" }}>
-                        Profile
+                        Settings
                       </Typography>
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>

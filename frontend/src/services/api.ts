@@ -111,6 +111,30 @@ export async function fetchClassOverview(classId: string): Promise<ClassOverview
   return data;
 }
 
+// ── Users ───────────────────────────────────────────────────────────
+
+export interface ApiUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export async function fetchCurrentUser(): Promise<ApiUser> {
+  const res = await fetch(`${API_BASE}/users/me`, {
+    headers: { "X-User-Id": getUserId() },
+  });
+  return handleResponse<ApiUser>(res);
+}
+
+export async function updateUserName(name: string): Promise<ApiUser> {
+  const res = await fetch(`${API_BASE}/users/me`, {
+    method: "PUT",
+    headers: headers({ "X-User-Id": getUserId() }),
+    body: JSON.stringify({ name }),
+  });
+  return handleResponse<ApiUser>(res);
+}
+
 // ── Classes ──────────────────────────────────────────────────────────
 
 export async function fetchClasses(): Promise<ApiClass[]> {
