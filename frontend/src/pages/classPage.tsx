@@ -333,7 +333,6 @@ function ClassPage() {
       <ClassHeader
         className={classInfo.name}
         studentCount={students.length}
-        totalHomework={homework.length}
         onAddStudent={() => setAddStudentOpen(true)}
         onRemoveStudent={() => setRemoveStudentOpen(true)}
       />
