@@ -75,7 +75,7 @@ const LandingPage = () => {
                 >
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      {cls.name}
+                      {cls.classLevel}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {cls.dayOfWeek} {cls.startTime}–{cls.endTime}

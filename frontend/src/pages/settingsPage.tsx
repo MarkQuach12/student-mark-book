@@ -169,7 +169,7 @@ export default function SettingsPage() {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert onClose={() => setToast(null)} severity={toast?.type ?? "success"} variant="filled" sx={{ width: "100%" }}>
-          {toast?.message ?? ""}
+          {toast?.message ?? "f"}
         </Alert>
       </Snackbar>
     </Container>
