@@ -6,15 +6,23 @@ import CardContent from "@mui/material/CardContent";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import CalendarViewWeekIcon from "@mui/icons-material/CalendarViewWeek";
 import { useNavigate } from "react-router-dom";
 import { fetchClasses } from "../services/api";
 import type { ClassData } from "./classPage/types";
+import WeeklyCalendar from "../components/calendar/WeeklyCalendar";
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"grid" | "calendar">(
+    () => (localStorage.getItem("landingViewMode") as "grid" | "calendar") || "grid"
+  );
 
   const loadClasses = useCallback(async () => {
     try {
@@ -48,45 +56,76 @@ const LandingPage = () => {
   return (
     <Box sx={{ pt: 12, pb: 4 }}>
       <Container maxWidth="md">
-        <Typography variant="h4" component="h1" gutterBottom>
-          MQ Student Mark Book
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Manage your classes and student marks in one place.
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+          <Box sx={{ textAlign: "center", flex: 1 }}>
+            <Typography variant="h4" component="h1">
+              MQ Student Mark Book
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Manage your classes and student marks in one place.
+            </Typography>
+          </Box>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, v: "grid" | "calendar" | null) => {
+              if (v) {
+                setViewMode(v);
+                localStorage.setItem("landingViewMode", v);
+              }
+            }}
+            size="small"
+          >
+            <ToggleButton value="grid" aria-label="grid view">
+              <ViewModuleIcon />
+            </ToggleButton>
+            <ToggleButton value="calendar" aria-label="calendar view">
+              <CalendarViewWeekIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
 
-        <Grid container spacing={2}>
-          {classes.map((cls) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cls.id}>
-              <Card
-                variant="outlined"
-                sx={{
-                  height: 120,
-                  transition: "box-shadow 0.2s, border-color 0.2s",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    boxShadow: 2,
-                  },
-                }}
-              >
-                <CardActionArea
-                  onClick={() => navigate(`/classOverview/${cls.id}`)}
-                  sx={{ height: "100%" }}
-                >
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {cls.classLevel}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
       </Container>
+
+      {viewMode === "grid" ? (
+        <Container maxWidth="md">
+          <Grid container spacing={2}>
+            {classes.map((cls) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cls.id}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    height: 120,
+                    transition: "box-shadow 0.2s, border-color 0.2s",
+                    "&:hover": {
+                      borderColor: "primary.main",
+                      boxShadow: 2,
+                    },
+                  }}
+                >
+                  <CardActionArea
+                    onClick={() => navigate(`/classOverview/${cls.id}`)}
+                    sx={{ height: "100%" }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        {cls.classLevel}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      ) : (
+        <Box sx={{ px: 2 }}>
+          <WeeklyCalendar classes={classes} />
+        </Box>
+      )}
     </Box>
   );
 };
