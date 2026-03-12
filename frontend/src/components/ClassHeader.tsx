@@ -7,9 +7,10 @@ interface ClassHeaderProps {
   studentCount: number;
   onAddStudent: () => void;
   onRemoveStudent: () => void;
+  onDeleteClass: () => void;
 }
 
-export default function ClassHeader({ className, studentCount, onAddStudent, onRemoveStudent }: ClassHeaderProps) {
+export default function ClassHeader({ className, studentCount, onAddStudent, onRemoveStudent, onDeleteClass }: ClassHeaderProps) {
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -25,6 +26,9 @@ export default function ClassHeader({ className, studentCount, onAddStudent, onR
           </Button>
           <Button size="small" variant="outlined" color="error" onClick={onRemoveStudent}>
             - Remove Student
+          </Button>
+          <Button size="small" variant="outlined" color="error" onClick={onDeleteClass}>
+            Delete Class
           </Button>
         </Box>
       </Box>

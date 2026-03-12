@@ -6,6 +6,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CompletionMap, Homework, PaymentStatus, Student } from "./classPage/types";
@@ -17,6 +18,7 @@ import {
   addStudent as apiAddStudent,
   deleteStudent as apiDeleteStudent,
   createHomework as apiCreateHomework,
+  deleteClass as apiDeleteClass,
   deleteHomework as apiDeleteHomework,
   updateAttendance as apiUpdateAttendance,
   toggleCompletion as apiToggleCompletion,
@@ -50,6 +52,8 @@ function ClassPage() {
   const [removeStudentOpen, setRemoveStudentOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleteClassOpen, setDeleteClassOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -156,6 +160,16 @@ function ClassPage() {
     },
     []
   );
+
+  const handleDeleteClass = async () => {
+    if (!id) return;
+    try {
+      await apiDeleteClass(id);
+      navigate("/");
+    } catch {
+      // Could show error toast
+    }
+  };
 
   const handleAddStudent = async (name: string) => {
     if (!id) return;
@@ -335,6 +349,7 @@ function ClassPage() {
         studentCount={students.length}
         onAddStudent={() => setAddStudentOpen(true)}
         onRemoveStudent={() => setRemoveStudentOpen(true)}
+        onDeleteClass={() => setDeleteClassOpen(true)}
       />
       <TermSelector terms={terms} selectedTermKey={selectedTermKey} onTermChange={handleTermChange} />
       <WeekTabs
@@ -388,6 +403,40 @@ function ClassPage() {
             onClick={() => {
               handleDeleteHomework(pendingDeleteId!);
               setPendingDeleteId(null);
+            }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={deleteClassOpen}
+        onClose={() => { setDeleteClassOpen(false); setDeleteConfirmText(""); }}
+      >
+        <DialogTitle>Delete Class?</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            This will permanently delete this class and all its students, homework, attendance, and payment records.
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            label='Type "delete" to confirm'
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => { setDeleteClassOpen(false); setDeleteConfirmText(""); }}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={deleteConfirmText.toLowerCase() !== "delete"}
+            onClick={() => {
+              handleDeleteClass();
+              setDeleteClassOpen(false);
+              setDeleteConfirmText("");
             }}
           >
             Delete
