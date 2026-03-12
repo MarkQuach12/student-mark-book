@@ -55,37 +55,39 @@ const LandingPage = () => {
 
   return (
     <Box sx={{ pt: 12, pb: 4 }}>
-      <Container maxWidth="md">
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-          <Box sx={{ textAlign: "center", flex: 1 }}>
-            <Typography variant="h4" component="h1">
-              MQ Student Mark Book
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Manage your classes and student marks in one place.
-            </Typography>
+      <Box sx={{ pb: 1 }}>
+        <Container maxWidth="md">
+          <Box sx={{ position: "relative", mb: 1 }}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h4" component="h1">
+                MQ Student Mark Book
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Manage your classes and student marks in one place.
+              </Typography>
+            </Box>
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(_, v: "grid" | "calendar" | null) => {
+                if (v) {
+                  setViewMode(v);
+                  localStorage.setItem("landingViewMode", v);
+                }
+              }}
+              size="small"
+              sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)" }}
+            >
+              <ToggleButton value="grid" aria-label="grid view">
+                <ViewModuleIcon />
+              </ToggleButton>
+              <ToggleButton value="calendar" aria-label="calendar view">
+                <CalendarViewWeekIcon />
+              </ToggleButton>
+            </ToggleButtonGroup>
           </Box>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_, v: "grid" | "calendar" | null) => {
-              if (v) {
-                setViewMode(v);
-                localStorage.setItem("landingViewMode", v);
-              }
-            }}
-            size="small"
-          >
-            <ToggleButton value="grid" aria-label="grid view">
-              <ViewModuleIcon />
-            </ToggleButton>
-            <ToggleButton value="calendar" aria-label="calendar view">
-              <CalendarViewWeekIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-
-      </Container>
+        </Container>
+      </Box>
 
       {viewMode === "grid" ? (
         <Container maxWidth="md">
