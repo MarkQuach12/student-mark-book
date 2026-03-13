@@ -14,6 +14,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createClass, addStudent } from "../services/api";
@@ -72,6 +73,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
   const [studentNames, setStudentNames] = useState<string[]>([""]);
   const [errors, setErrors] = useState<FormErrors>(NO_ERRORS);
   const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const resetForm = () => {
     setClassLevel("");
@@ -81,6 +83,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
     setStudentNames([""]);
     setErrors(NO_ERRORS);
     setSaving(false);
+    setSubmitError("");
   };
 
   const handleCancel = () => {
@@ -123,6 +126,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
     if (Object.values(newErrors).some(Boolean)) return;
 
     setSaving(true);
+    setSubmitError("");
 
     try {
       const trimmedStart = startTime.trim();
@@ -145,7 +149,8 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
       resetForm();
       onClose();
     } catch (err) {
-      console.error("Failed to create class:", err);
+      const message = err instanceof Error ? err.message : "Failed to create class";
+      setSubmitError(message);
       setSaving(false);
     }
   };
@@ -283,6 +288,11 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
             </Box>
           ))}
         </Box>
+        {submitError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {submitError}
+          </Alert>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>

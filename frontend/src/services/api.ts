@@ -46,7 +46,12 @@ function getUserId(): string {
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+    let message = text || `HTTP ${res.status}`;
+    try {
+      const json = JSON.parse(text);
+      if (json.message) message = json.message;
+    } catch { /* use raw text */ }
+    throw new Error(message);
   }
   return res.json() as Promise<T>;
 }

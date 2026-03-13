@@ -29,7 +29,7 @@ export default function ClassHeader({ className, studentCount, onAddStudent, onR
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: "center" }}>
         {className}
       </Typography>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

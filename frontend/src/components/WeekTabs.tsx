@@ -16,8 +16,7 @@ export default function WeekTabs({ terms, selectedTermKey, selectedWeekIndex, on
     <Tabs
       value={selectedWeekIndex - 1}
       onChange={(_, value) => onWeekChange((value as number) + 1)}
-      variant="scrollable"
-      scrollButtons="auto"
+      centered
       sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}
     >
       {term.weeks.map((week, i) => (
