@@ -13,7 +13,13 @@ import Alert from "@mui/material/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { getInitials } from "../utils/stringUtils";
 import { findUserByEmail, updateUserInStorage } from "../utils/authStorage";
-import { updateUserName } from "../services/api";
+import { updateUserName, fetchClasses } from "../services/api";
+import type { ClassData } from "./classPage/types";
+import {
+  CLASS_COLOR_PALETTE,
+  getClassColorMap,
+  setClassColor,
+} from "../utils/classColors";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -27,12 +33,17 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [colorMap, setColorMap] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
       return;
     }
     setName(user.name);
+    fetchClasses().then(setClasses).catch(() => {});
+    setColorMap(getClassColorMap(user.email));
   }, [user, navigate]);
 
   if (!user) return null;
@@ -57,6 +68,13 @@ export default function SettingsPage() {
     } finally {
       setNameSaving(false);
     }
+  };
+
+  const handleColorChange = (classId: string, colorKey: string) => {
+    if (!user) return;
+    setClassColor(user.email, classId, colorKey);
+    setColorMap((prev) => ({ ...prev, [classId]: colorKey }));
+    setToast({ type: "success", message: "Color updated." });
   };
 
   const handleUpdatePassword = () => {
@@ -161,6 +179,48 @@ export default function SettingsPage() {
           </Button>
         </Box>
       </Paper>
+
+      {classes.length > 0 && (
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+            Calendar Colors
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Choose a color for each class in the calendar view.
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {classes.map((cls) => (
+              <Box key={cls.id} sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+                <Typography variant="body2" sx={{ minWidth: 180, fontWeight: 500 }}>
+                  {cls.classLevel} — {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  {CLASS_COLOR_PALETTE.map((opt) => (
+                    <Box
+                      key={opt.key}
+                      onClick={() => handleColorChange(cls.id, opt.key)}
+                      sx={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        backgroundColor: opt.main,
+                        cursor: "pointer",
+                        border: "3px solid",
+                        borderColor:
+                          (colorMap[cls.id] ?? "teal") === opt.key
+                            ? "text.primary"
+                            : "transparent",
+                        transition: "border-color 0.15s, transform 0.15s",
+                        "&:hover": { transform: "scale(1.15)" },
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
+      )}
 
       <Snackbar
         open={toast !== null}

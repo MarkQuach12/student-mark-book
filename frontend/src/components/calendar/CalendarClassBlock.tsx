@@ -3,6 +3,8 @@ import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 import type { ClassData } from "../../pages/classPage/types";
 import { parseTime, formatMinutes } from "./calendarUtils";
+import { useAuth } from "../../contexts/AuthContext";
+import { getColorForClass } from "../../utils/classColors";
 
 interface Props {
   classData: ClassData;
@@ -12,6 +14,8 @@ interface Props {
 
 const CalendarClassBlock = ({ classData, startHour, pixelsPerHour }: Props) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const color = getColorForClass(user?.email ?? "", classData.id);
 
   const startMinutes = parseTime(classData.startTime);
   const endMinutes = parseTime(classData.endTime);
@@ -28,7 +32,7 @@ const CalendarClassBlock = ({ classData, startHour, pixelsPerHour }: Props) => {
         height,
         left: 4,
         right: 4,
-        backgroundColor: "#00796B",
+        backgroundColor: color.main,
         color: "#fff",
         borderRadius: 1,
         px: 1,
@@ -37,7 +41,7 @@ const CalendarClassBlock = ({ classData, startHour, pixelsPerHour }: Props) => {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        "&:hover": { backgroundColor: "#00695C", boxShadow: 2 },
+        "&:hover": { backgroundColor: color.hover, boxShadow: 2 },
         transition: "background-color 0.2s, box-shadow 0.2s",
       }}
     >
