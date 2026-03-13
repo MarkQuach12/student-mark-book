@@ -63,15 +63,6 @@ public class ClassService {
     public ClassEntity createClass(String userId, String classLevel, String dayOfWeek, LocalTime startTime, LocalTime endTime) {
         log.info("Creating class for userId={} level={} day={}", userId, classLevel, dayOfWeek);
 
-        List<ClassEntity> overlapping = classRepository.findOverlapping(userId, dayOfWeek, startTime, endTime);
-        if (!overlapping.isEmpty()) {
-            ClassEntity existing = overlapping.get(0);
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("This class overlaps with %s on %s (%s–%s)",
-                            existing.getClassLevel(), existing.getDayOfWeek(),
-                            existing.getStartTime(), existing.getEndTime()));
-        }
-
         User user = userRepository.findById(userId)
                 .orElseGet(() -> {
                     User newUser = new User(userId, userId, userId);

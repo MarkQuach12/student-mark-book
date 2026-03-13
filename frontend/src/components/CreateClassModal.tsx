@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -17,7 +17,8 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { createClass, addStudent } from "../services/api";
+import { createClass, addStudent, fetchClasses } from "../services/api";
+import type { ApiClass } from "../services/api";
 import { validateTime, timeToMinutes } from "../utils/formValidation";
 import type { ClassData } from "../pages/classPage/types";
 
@@ -74,6 +75,13 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
   const [errors, setErrors] = useState<FormErrors>(NO_ERRORS);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [existingClasses, setExistingClasses] = useState<ApiClass[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      fetchClasses().then(setExistingClasses).catch(() => {});
+    }
+  }, [open]);
 
   const resetForm = () => {
     setClassLevel("");
@@ -124,6 +132,22 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
     setErrors(newErrors);
 
     if (Object.values(newErrors).some(Boolean)) return;
+
+    // Check for time overlap with existing classes
+    const newStart = timeToMinutes(startTime);
+    const newEnd = timeToMinutes(endTime);
+    const overlap = existingClasses.find(
+      (cls) =>
+        cls.dayOfWeek === dayOfWeek &&
+        timeToMinutes(cls.startTime) < newEnd &&
+        timeToMinutes(cls.endTime) > newStart
+    );
+    if (overlap) {
+      setSubmitError(
+        `This class overlaps with ${overlap.classLevel} on ${overlap.dayOfWeek} (${overlap.startTime}–${overlap.endTime})`
+      );
+      return;
+    }
 
     setSaving(true);
     setSubmitError("");
