@@ -68,7 +68,7 @@ function ClassPage() {
         if (cancelled) return;
 
         setClassInfo(data.classInfo);
-        setStudents(data.students);
+        setStudents(data.students.sort((a, b) => a.name.localeCompare(b.name)));
         setHomework(data.homework);
         setAllAttendance(data.attendance);
         setAllCompletions(data.completions);
@@ -179,7 +179,7 @@ function ClassPage() {
     if (!id) return;
     try {
       const newStudent = await apiAddStudent(id, name);
-      setStudents((prev) => [...prev, newStudent]);
+      setStudents((prev) => [...prev, newStudent].sort((a, b) => a.name.localeCompare(b.name)));
     } catch {
       // Could show error toast
     }
