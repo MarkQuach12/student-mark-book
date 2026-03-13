@@ -11,7 +11,12 @@ interface PaymentCellProps {
 }
 
 export default function PaymentCell({ status, onChange, compact = true }: PaymentCellProps) {
-  const isPaid = status === "paid_cash" || status === "paid_online";
+  const backgroundColor =
+    status === "paid_cash" || status === "paid_online"
+      ? "success.light"
+      : status === "away"
+        ? "grey.300"
+        : "error.light";
   return (
     <TableCell sx={{ pl: 1, pr: 2, width: compact ? "1px" : undefined }}>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -22,13 +27,14 @@ export default function PaymentCell({ status, onChange, compact = true }: Paymen
           sx={{
             fontSize: "0.75rem",
             minWidth: 80,
-            backgroundColor: isPaid ? "success.light" : "error.light",
+            backgroundColor,
             "& .MuiSelect-select": { py: 0.5, px: 1 },
           }}
         >
           <MenuItem value="unpaid">Unpaid</MenuItem>
           <MenuItem value="paid_cash">Cash</MenuItem>
           <MenuItem value="paid_online">Online</MenuItem>
+          <MenuItem value="away">Away</MenuItem>
         </Select>
       </Box>
     </TableCell>

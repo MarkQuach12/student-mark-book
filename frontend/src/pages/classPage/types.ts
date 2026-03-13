@@ -10,7 +10,7 @@ export interface Homework {
   weekIndex: number; // 1-based index within that term's week list
 }
 
-export type PaymentStatus = "unpaid" | "paid_cash" | "paid_online";
+export type PaymentStatus = "unpaid" | "paid_cash" | "paid_online" | "away";
 
 export interface ClassData {
   id: string;
