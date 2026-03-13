@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
@@ -24,16 +24,31 @@ const LandingPage = () => {
     () => (localStorage.getItem("landingViewMode") as "grid" | "calendar") || "grid"
   );
 
+  const CLASS_ORDER = useMemo(() => [
+    "Y12 Extension 2",
+    "Y12 Extension 1",
+    "Y12 Advanced",
+    "Y12 Standard",
+    "Y11 Extension 1",
+    "Y11 Advanced",
+    "Y11 Standard",
+  ], []);
+
   const loadClasses = useCallback(async () => {
     try {
       const data = await fetchClasses();
+      data.sort((a, b) => {
+        const ai = CLASS_ORDER.indexOf(a.classLevel);
+        const bi = CLASS_ORDER.indexOf(b.classLevel);
+        return (ai === -1 ? CLASS_ORDER.length : ai) - (bi === -1 ? CLASS_ORDER.length : bi);
+      });
       setClasses(data);
     } catch {
       // Could show error toast
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [CLASS_ORDER]);
 
   useEffect(() => {
     loadClasses();
@@ -42,7 +57,11 @@ const LandingPage = () => {
   useEffect(() => {
     const refresh = () => { loadClasses(); };
     window.addEventListener("classCreated", refresh);
-    return () => window.removeEventListener("classCreated", refresh);
+    window.addEventListener("classDeleted", refresh);
+    return () => {
+      window.removeEventListener("classCreated", refresh);
+      window.removeEventListener("classDeleted", refresh);
+    };
   }, [loadClasses]);
 
   if (loading) {
@@ -93,7 +112,7 @@ const LandingPage = () => {
         <Container maxWidth="md">
           <Grid container spacing={2}>
             {classes.map((cls) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cls.id}>
+              <Grid size={{ xs: 12, sm: 4, md: 4 }} key={cls.id}>
                 <Card
                   variant="outlined"
                   sx={{
@@ -109,7 +128,7 @@ const LandingPage = () => {
                     onClick={() => navigate(`/classOverview/${cls.id}`)}
                     sx={{ height: "100%" }}
                   >
-                    <CardContent>
+                    <CardContent sx={{ textAlign: "center" }}>
                       <Typography variant="h6" gutterBottom>
                         {cls.classLevel}
                       </Typography>

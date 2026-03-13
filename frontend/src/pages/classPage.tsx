@@ -165,9 +165,13 @@ function ClassPage() {
     if (!id) return;
     try {
       await apiDeleteClass(id);
+      setDeleteClassOpen(false);
+      setDeleteConfirmText("");
+      window.dispatchEvent(new CustomEvent("classDeleted"));
       navigate("/");
     } catch {
-      // Could show error toast
+      setDeleteClassOpen(false);
+      setDeleteConfirmText("");
     }
   };
 
@@ -433,11 +437,7 @@ function ClassPage() {
             color="error"
             variant="contained"
             disabled={deleteConfirmText.toLowerCase() !== "delete"}
-            onClick={() => {
-              handleDeleteClass();
-              setDeleteClassOpen(false);
-              setDeleteConfirmText("");
-            }}
+            onClick={handleDeleteClass}
           >
             Delete
           </Button>
