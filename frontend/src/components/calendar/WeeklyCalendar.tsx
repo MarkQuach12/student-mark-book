@@ -1,12 +1,27 @@
 import { useMemo } from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import type { ClassData } from "../../pages/classPage/types";
-import { DAY_COLUMNS, parseTime, formatTimeLabel } from "./calendarUtils";
+import type { ApiExam } from "../../services/api";
+import {
+  formatDateISO,
+  formatDayHeader,
+  formatTimeLabel,
+  getWeekDates,
+  isSameDate,
+  parseTime,
+} from "./calendarUtils";
 import CalendarClassBlock from "./CalendarClassBlock";
+import CalendarExamBlock from "./CalendarExamBlock";
 
 interface Props {
   classes: ClassData[];
+  exams: ApiExam[];
+  weekStart: Date;
+  onPrevWeek: () => void;
+  onNextWeek: () => void;
+  onToday: () => void;
 }
 
 const PIXELS_PER_HOUR = 70;
@@ -15,13 +30,46 @@ const DAY_COL_MIN_WIDTH = 130;
 const DEFAULT_START_HOUR = 9;
 const DEFAULT_END_HOUR = 20;
 
-const WeeklyCalendar = ({ classes }: Props) => {
-  const { startHour, endHour, classesByDay } = useMemo(() => {
+function formatWeekRange(weekDates: Date[]): string {
+  const start = weekDates[0];
+  const end = weekDates[6];
+
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  const startMonth = start.toLocaleDateString("en-US", { month: "short" });
+  const endMonth = end.toLocaleDateString("en-US", { month: "short" });
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  if (startYear === endYear && startMonth === endMonth) {
+    return `${startDay}-${endDay} ${startMonth} ${startYear}`;
+  }
+  if (startYear === endYear) {
+    return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${startYear}`;
+  }
+  return `${startDay} ${startMonth} ${startYear} - ${endDay} ${endMonth} ${endYear}`;
+}
+
+const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onToday }: Props) => {
+  const today = useMemo(() => new Date(), []);
+  const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
+  const weekLabel = useMemo(() => formatWeekRange(weekDates), [weekDates]);
+
+  const { startHour, endHour, classesByDate, examsByDate } = useMemo(() => {
     let minHour = DEFAULT_START_HOUR;
     let maxHour = DEFAULT_END_HOUR;
 
-    const byDay: Record<string, ClassData[]> = {};
-    for (const day of DAY_COLUMNS) byDay[day] = [];
+    const classesByDayName: Record<string, ClassData[]> = {
+      Monday: [],
+      Tuesday: [],
+      Wednesday: [],
+      Thursday: [],
+      Friday: [],
+      Saturday: [],
+      Sunday: [],
+    };
+    const byDateClasses: Record<string, ClassData[]> = {};
+    const byDateExams: Record<string, ApiExam[]> = {};
 
     for (const cls of classes) {
       const startMin = parseTime(cls.startTime);
@@ -30,13 +78,26 @@ const WeeklyCalendar = ({ classes }: Props) => {
       const eHour = Math.ceil(endMin / 60);
       if (sHour < minHour) minHour = sHour;
       if (eHour > maxHour) maxHour = eHour;
-      if (byDay[cls.dayOfWeek]) {
-        byDay[cls.dayOfWeek].push(cls);
+      if (classesByDayName[cls.dayOfWeek]) {
+        classesByDayName[cls.dayOfWeek].push(cls);
       }
     }
 
-    return { startHour: minHour, endHour: maxHour, classesByDay: byDay };
-  }, [classes]);
+    for (const date of weekDates) {
+      const dateKey = formatDateISO(date);
+      const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
+      byDateClasses[dateKey] = classesByDayName[dayName] ?? [];
+      byDateExams[dateKey] = [];
+    }
+
+    for (const exam of exams) {
+      if (byDateExams[exam.examDate]) {
+        byDateExams[exam.examDate].push(exam);
+      }
+    }
+
+    return { startHour: minHour, endHour: maxHour, classesByDate: byDateClasses, examsByDate: byDateExams };
+  }, [classes, exams, weekDates]);
 
   const totalHours = endHour - startHour;
   const gridHeight = totalHours * PIXELS_PER_HOUR;
@@ -44,8 +105,20 @@ const WeeklyCalendar = ({ classes }: Props) => {
 
   return (
     <Box sx={{ width: "100%" }}>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+        <Box sx={{ flex: 1 }}>
+          <Button onClick={onToday} size="small" variant="outlined">Today</Button>
+        </Box>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {weekLabel}
+        </Typography>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+          <Button onClick={onPrevWeek} size="small" variant="outlined">{"<"}</Button>
+          <Button onClick={onNextWeek} size="small" variant="outlined">{">"}</Button>
+        </Box>
+      </Box>
+
       <Box sx={{ display: "flex", flexDirection: "column" }}>
-        {/* Day headers */}
         <Box
           sx={{
             display: "grid",
@@ -54,26 +127,43 @@ const WeeklyCalendar = ({ classes }: Props) => {
           }}
         >
           <Box />
-          {DAY_COLUMNS.map((day, idx) => (
+          {weekDates.map((date, idx) => {
+            const dateKey = formatDateISO(date);
+            return (
             <Box
-              key={day}
+              key={dateKey}
               sx={{
                 py: 1,
+                px: 1,
                 textAlign: "center",
                 borderTop: "1px solid",
                 borderLeft: "1px solid",
-                borderRight: idx === DAY_COLUMNS.length - 1 ? "1px solid" : undefined,
+                borderRight: idx === weekDates.length - 1 ? "1px solid" : undefined,
                 borderColor: "divider",
+                ...(isSameDate(date, today) && { backgroundColor: "rgba(255, 160, 113, 0.12)" }),
               }}
             >
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {day}
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: isSameDate(date, today) ? 800 : 600,
+                  color: isSameDate(date, today) ? "primary.main" : undefined,
+                }}
+              >
+                {formatDayHeader(date)}
               </Typography>
+              {examsByDate[dateKey]?.length ? (
+                <Box sx={{ mt: 0.75, display: "flex", flexDirection: "column", gap: 0.5, textAlign: "left" }}>
+                  {examsByDate[dateKey].map((exam) => (
+                    <CalendarExamBlock key={exam.id} exam={exam} />
+                  ))}
+                </Box>
+              ) : null}
             </Box>
-          ))}
+          );
+          })}
         </Box>
 
-        {/* Time grid */}
         <Box
           sx={{
             display: "grid",
@@ -81,7 +171,6 @@ const WeeklyCalendar = ({ classes }: Props) => {
             position: "relative",
           }}
         >
-          {/* Time labels column */}
           <Box sx={{ position: "relative", height: gridHeight }}>
             {hours.map((hour) => (
               <Typography
@@ -101,19 +190,20 @@ const WeeklyCalendar = ({ classes }: Props) => {
             ))}
           </Box>
 
-          {/* Day columns */}
-          {DAY_COLUMNS.map((day, idx) => (
+          {weekDates.map((date, idx) => {
+            const dateKey = formatDateISO(date);
+            return (
             <Box
-              key={day}
+              key={dateKey}
               sx={{
                 position: "relative",
                 height: gridHeight,
                 borderLeft: "1px solid",
-                borderRight: idx === DAY_COLUMNS.length - 1 ? "1px solid" : undefined,
+                borderRight: idx === weekDates.length - 1 ? "1px solid" : undefined,
                 borderColor: "divider",
+                ...(isSameDate(date, today) && { backgroundColor: "rgba(255, 160, 113, 0.05)" }),
               }}
             >
-              {/* Hour gridlines (skip first to avoid top border) */}
               {hours.map((hour) =>  (
                 <Box
                   key={hour}
@@ -128,8 +218,7 @@ const WeeklyCalendar = ({ classes }: Props) => {
                 />
               ))}
 
-              {/* Class blocks */}
-              {classesByDay[day]?.map((cls) => (
+              {classesByDate[dateKey]?.map((cls) => (
                 <CalendarClassBlock
                   key={cls.id}
                   classData={cls}
@@ -138,7 +227,8 @@ const WeeklyCalendar = ({ classes }: Props) => {
                 />
               ))}
             </Box>
-          ))}
+          );
+          })}
         </Box>
       </Box>
     </Box>

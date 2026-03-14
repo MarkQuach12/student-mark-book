@@ -6,20 +6,27 @@ import CardContent from "@mui/material/CardContent";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import CalendarViewWeekIcon from "@mui/icons-material/CalendarViewWeek";
 import { useNavigate } from "react-router-dom";
-import { fetchClasses } from "../services/api";
+import { fetchClasses, fetchExams } from "../services/api";
 import type { ClassData } from "./classPage/types";
+import type { ApiExam } from "../services/api";
 import WeeklyCalendar from "../components/calendar/WeeklyCalendar";
+import AddExamDialog from "../components/calendar/AddExamDialog";
+import { formatDateISO, getMonday, getWeekDates } from "../components/calendar/calendarUtils";
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [classes, setClasses] = useState<ClassData[]>([]);
+  const [exams, setExams] = useState<ApiExam[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addExamOpen, setAddExamOpen] = useState(false);
+  const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [viewMode, setViewMode] = useState<"grid" | "calendar">(
     () => (localStorage.getItem("landingViewMode") as "grid" | "calendar") || "grid"
   );
@@ -54,6 +61,24 @@ const LandingPage = () => {
     loadClasses();
   }, [loadClasses]);
 
+  const loadExams = useCallback(async () => {
+    const weekDates = getWeekDates(weekStart);
+    const start = formatDateISO(weekDates[0]);
+    const end = formatDateISO(weekDates[6]);
+
+    try {
+      const data = await fetchExams(start, end);
+      setExams(data);
+    } catch {
+      // Could show error toast
+    }
+  }, [weekStart]);
+
+  useEffect(() => {
+    if (viewMode !== "calendar") return;
+    loadExams();
+  }, [viewMode, loadExams]);
+
   useEffect(() => {
     const refresh = () => { loadClasses(); };
     window.addEventListener("classCreated", refresh);
@@ -63,6 +88,36 @@ const LandingPage = () => {
       window.removeEventListener("classDeleted", refresh);
     };
   }, [loadClasses]);
+
+  useEffect(() => {
+    const refreshExams = () => { loadExams(); };
+    window.addEventListener("examCreated", refreshExams);
+    window.addEventListener("examDeleted", refreshExams);
+    return () => {
+      window.removeEventListener("examCreated", refreshExams);
+      window.removeEventListener("examDeleted", refreshExams);
+    };
+  }, [loadExams]);
+
+  const handlePrevWeek = () => {
+    setWeekStart((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() - 7);
+      return next;
+    });
+  };
+
+  const handleNextWeek = () => {
+    setWeekStart((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + 7);
+      return next;
+    });
+  };
+
+  const handleToday = () => {
+    setWeekStart(getMonday(new Date()));
+  };
 
   if (loading) {
     return (
@@ -85,25 +140,31 @@ const LandingPage = () => {
                 Manage your classes and student marks in one place.
               </Typography>
             </Box>
-            <ToggleButtonGroup
-              value={viewMode}
-              exclusive
-              onChange={(_, v: "grid" | "calendar" | null) => {
-                if (v) {
-                  setViewMode(v);
-                  localStorage.setItem("landingViewMode", v);
-                }
-              }}
-              size="small"
-              sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)" }}
-            >
-              <ToggleButton value="grid" aria-label="grid view">
-                <ViewModuleIcon />
-              </ToggleButton>
-              <ToggleButton value="calendar" aria-label="calendar view">
-                <CalendarViewWeekIcon />
-              </ToggleButton>
-            </ToggleButtonGroup>
+            <Box sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 1 }}>
+              {viewMode === "calendar" && (
+                <Button variant="contained" size="small" onClick={() => setAddExamOpen(true)}>
+                  Add Exam
+                </Button>
+              )}
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(_, v: "grid" | "calendar" | null) => {
+                  if (v) {
+                    setViewMode(v);
+                    localStorage.setItem("landingViewMode", v);
+                  }
+                }}
+                size="small"
+              >
+                <ToggleButton value="grid" aria-label="grid view">
+                  <ViewModuleIcon />
+                </ToggleButton>
+                <ToggleButton value="calendar" aria-label="calendar view">
+                  <CalendarViewWeekIcon />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
           </Box>
         </Container>
       </Box>
@@ -144,9 +205,17 @@ const LandingPage = () => {
         </Container>
       ) : (
         <Box sx={{ px: 2 }}>
-          <WeeklyCalendar classes={classes} />
+          <WeeklyCalendar
+            classes={classes}
+            exams={exams}
+            weekStart={weekStart}
+            onPrevWeek={handlePrevWeek}
+            onNextWeek={handleNextWeek}
+            onToday={handleToday}
+          />
         </Box>
       )}
+      <AddExamDialog open={addExamOpen} onClose={() => setAddExamOpen(false)} />
     </Box>
   );
 };

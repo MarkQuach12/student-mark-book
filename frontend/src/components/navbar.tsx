@@ -109,12 +109,12 @@ export default function Navbar() {
                     onClose={handleCloseUserMenu}
                   >
                     <MenuItem component={Link} to="/settings" onClick={handleCloseUserMenu}>
-                      <Typography sx={{ textAlign: "center", color: "black" }}>
+                      <Typography sx={{ textAlign: "center" }}>
                         Settings
                       </Typography>
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>
-                      <Typography sx={{ textAlign: "center", color: "black" }}>
+                      <Typography sx={{ textAlign: "center" }}>
                         Logout
                       </Typography>
                     </MenuItem>

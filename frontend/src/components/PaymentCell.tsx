@@ -28,7 +28,9 @@ export default function PaymentCell({ status, onChange, compact = true }: Paymen
             fontSize: "0.75rem",
             minWidth: 80,
             backgroundColor,
+            color: "black",
             "& .MuiSelect-select": { py: 0.5, px: 1 },
+            "& .MuiSvgIcon-root": { color: "black" },
           }}
         >
           <MenuItem value="unpaid">Unpaid</MenuItem>

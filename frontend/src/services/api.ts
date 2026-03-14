@@ -289,6 +289,50 @@ export async function toggleCompletion(data: {
   return result;
 }
 
+// ── Exams ───────────────────────────────────────────────────────────
+
+export interface ApiExam {
+  id: string;
+  title: string;
+  examDate: string;
+}
+
+export async function fetchExams(start?: string, end?: string): Promise<ApiExam[]> {
+  const key = `exams:${start ?? ""}:${end ?? ""}`;
+  const cached = getCached<ApiExam[]>(key);
+  if (cached) return cached;
+
+  const params = new URLSearchParams();
+  if (start) params.set("start", start);
+  if (end) params.set("end", end);
+  const qs = params.toString();
+  const url = `${API_BASE}/exams${qs ? `?${qs}` : ""}`;
+  const res = await fetch(url, { headers: { "X-User-Id": getUserId() } });
+  const data = await handleResponse<ApiExam[]>(res);
+  setCache(key, data);
+  return data;
+}
+
+export async function createExam(data: {
+  title: string;
+  examDate: string;
+}): Promise<ApiExam> {
+  const res = await fetch(`${API_BASE}/exams`, {
+    method: "POST",
+    headers: headers({ "X-User-Id": getUserId() }),
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<ApiExam>(res);
+  invalidateCache("exams:");
+  return result;
+}
+
+export async function deleteExam(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/exams/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  invalidateCache("exams:");
+}
+
 // ── Payments ─────────────────────────────────────────────────────────
 
 export async function fetchPayments(classId: string): Promise<ApiPayment[]> {
