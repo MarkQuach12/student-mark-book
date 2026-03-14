@@ -1,10 +1,14 @@
-export interface StoredUser {
+export interface AuthUser {
+  id: string;
   name: string;
   email: string;
-  password: string;
+  role: "ADMIN" | "USER";
 }
 
-export interface CurrentUser {
+export interface AuthResponse {
+  token: string;
+  id: string;
   name: string;
   email: string;
+  role: "ADMIN" | "USER";
 }

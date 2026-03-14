@@ -2,6 +2,7 @@ package com.markbook.backend.controller;
 
 import com.markbook.backend.dto.StudentDTO;
 import com.markbook.backend.dto.request.CreateStudentRequest;
+import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +35,8 @@ public class StudentController {
     }
 
     @DeleteMapping("/students/{id}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable UUID id,
-                                              @RequestHeader("X-User-Id") String userId) {
-        studentService.deleteStudent(id, userId);
+    public ResponseEntity<Void> deleteStudent(@PathVariable UUID id) {
+        studentService.deleteStudent(id, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 }

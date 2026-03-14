@@ -1,7 +1,8 @@
 import { useState } from "react";
 import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
-import { addUser, findUserByEmail } from "../utils/authStorage";
+import { signup } from "../services/api";
+import { setToken } from "../utils/authStorage";
 import { validateEmail } from "../utils/formValidation";
 import { useAuth } from "../contexts/AuthContext";
 import AuthForm from "../components/AuthForm";
@@ -16,7 +17,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -27,22 +28,17 @@ export default function SignUpPage() {
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
 
-    if (findUserByEmail(email.trim())) {
-      setError("An account with this email already exists.");
-      return;
-    }
-
     setLoading(true);
-    setTimeout(() => {
-      addUser({
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      setUser({ name: name.trim(), email: email.trim().toLowerCase() });
-      setLoading(false);
+    try {
+      const res = await signup(name.trim(), email.trim(), password);
+      setToken(res.token);
+      setUser({ id: res.id, name: res.name, email: res.email, role: res.role });
       navigate("/", { replace: true });
-    }, 300);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

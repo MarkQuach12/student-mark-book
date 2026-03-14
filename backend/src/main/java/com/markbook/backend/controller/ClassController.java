@@ -4,6 +4,7 @@ import com.markbook.backend.dto.ClassDTO;
 import com.markbook.backend.dto.ClassOverviewDTO;
 import com.markbook.backend.dto.request.CreateClassRequest;
 import com.markbook.backend.model.ClassEntity;
+import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.ClassService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -24,36 +25,32 @@ public class ClassController {
     }
 
     @GetMapping
-    public List<ClassDTO> getClasses(@RequestHeader("X-User-Id") String userId) {
-        return classService.getClassesForUser(userId).stream()
+    public List<ClassDTO> getClasses() {
+        return classService.getClassesForUser(SecurityUtils.getCurrentUserId()).stream()
                 .map(ClassDTO::from)
                 .toList();
     }
 
     @PostMapping
-    public ClassDTO createClass(@RequestHeader("X-User-Id") String userId,
-                                @RequestBody @Valid CreateClassRequest body) {
+    public ClassDTO createClass(@RequestBody @Valid CreateClassRequest body) {
         ClassEntity created = classService.createClass(
-                userId,
+                SecurityUtils.getCurrentUserId(),
                 body.classLevel(),
                 body.dayOfWeek(),
                 LocalTime.parse(body.startTime()),
                 LocalTime.parse(body.endTime())
         );
-
         return ClassDTO.from(created);
     }
 
     @GetMapping("/{id}/overview")
-    public ClassOverviewDTO getClassOverview(@PathVariable UUID id,
-                                             @RequestHeader("X-User-Id") String userId) {
-        return classService.getClassOverview(id, userId);
+    public ClassOverviewDTO getClassOverview(@PathVariable UUID id) {
+        return classService.getClassOverview(id, SecurityUtils.getCurrentUserId());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClass(@PathVariable UUID id,
-                                            @RequestHeader("X-User-Id") String userId) {
-        classService.deleteClass(id, userId);
+    public ResponseEntity<Void> deleteClass(@PathVariable UUID id) {
+        classService.deleteClass(id, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 }

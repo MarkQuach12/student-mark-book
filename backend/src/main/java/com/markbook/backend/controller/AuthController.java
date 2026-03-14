@@ -1,0 +1,50 @@
+package com.markbook.backend.controller;
+
+import com.markbook.backend.dto.AuthResponse;
+import com.markbook.backend.dto.request.ForgotPasswordRequest;
+import com.markbook.backend.dto.request.LoginRequest;
+import com.markbook.backend.dto.request.ResetPasswordRequest;
+import com.markbook.backend.dto.request.SignupRequest;
+import com.markbook.backend.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/signup")
+    public AuthResponse signup(@RequestBody @Valid SignupRequest body) {
+        return authService.signup(body.name(), body.email(), body.password());
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login(@RequestBody @Valid LoginRequest body) {
+        return authService.login(body.email(), body.password());
+    }
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<Void> validateResetToken(@RequestParam String token) {
+        authService.validateResetToken(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest body) {
+        authService.forgotPassword(body.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest body) {
+        authService.resetPassword(body.token(), body.newPassword());
+        return ResponseEntity.ok().build();
+    }
+}

@@ -56,15 +56,17 @@ export default function AuthForm({
               </Alert>
             )}
             {children}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : submitLabel}
-            </Button>
+            {submitLabel && (
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : submitLabel}
+              </Button>
+            )}
             <Typography variant="body2" sx={{ textAlign: "center" }}>
               {footerText}{" "}
               <Link to={footerLinkTo} style={{ color: "inherit", fontWeight: 600 }}>

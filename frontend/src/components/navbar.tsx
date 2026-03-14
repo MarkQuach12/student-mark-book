@@ -18,7 +18,7 @@ import CreateClassModal from "./CreateClassModal";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user: currentUser, clearUser } = useAuth();
+  const { user: currentUser, isAdmin, clearUser } = useAuth();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const [modalOpen, setModalOpen] = React.useState(false);
 
@@ -63,7 +63,7 @@ export default function Navbar() {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            {currentUser && (
+            {currentUser && isAdmin && (
               <Button
                 variant="contained"
                 size="small"
@@ -76,6 +76,17 @@ export default function Navbar() {
                 }}
               >
                 Create New Class
+              </Button>
+            )}
+
+            {currentUser && isAdmin && (
+              <Button
+                color="inherit"
+                component={Link}
+                to="/admin"
+                sx={{ mr: 1 }}
+              >
+                Admin
               </Button>
             )}
 
@@ -141,7 +152,7 @@ export default function Navbar() {
         </Container>
       </AppBar>
 
-      {currentUser && (
+      {currentUser && isAdmin && (
         <CreateClassModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}

@@ -2,46 +2,39 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   type ReactNode,
 } from "react";
-import type { CurrentUser } from "../types/auth";
-import {
-  getCurrentUser,
-  setCurrentUser as persistCurrentUser,
-  clearCurrentUser as persistClearCurrentUser,
-} from "../utils/authStorage";
+import type { AuthUser } from "../types/auth";
+import { getAuthUser, setAuthUser, clearAuth } from "../utils/authStorage";
+import { clearAllCache } from "../services/api";
 
 interface AuthContextValue {
-  user: CurrentUser | null;
-  setUser: (user: CurrentUser) => void;
+  user: AuthUser | null;
+  isAdmin: boolean;
+  setUser: (user: AuthUser) => void;
   clearUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<CurrentUser | null>(() =>
-    getCurrentUser()
-  );
+  const [user, setUserState] = useState<AuthUser | null>(() => getAuthUser());
 
-  useEffect(() => {
-    setUserState(getCurrentUser());
-  }, []);
-
-  const setUser = useCallback((u: CurrentUser) => {
-    persistCurrentUser(u);
+  const setUser = useCallback((u: AuthUser) => {
+    clearAllCache();
+    setAuthUser(u);
     setUserState(u);
   }, []);
 
   const clearUser = useCallback(() => {
-    persistClearCurrentUser();
+    clearAllCache();
+    clearAuth();
     setUserState(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, clearUser }}>
+    <AuthContext.Provider value={{ user, isAdmin: user?.role === "ADMIN", setUser, clearUser }}>
       {children}
     </AuthContext.Provider>
   );

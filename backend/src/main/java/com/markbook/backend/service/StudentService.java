@@ -9,10 +9,8 @@ import com.markbook.backend.repository.HomeworkCompletionRepository;
 import com.markbook.backend.repository.PaymentRepository;
 import com.markbook.backend.repository.StudentRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,15 +24,18 @@ public class StudentService {
     private final AttendanceRepository attendanceRepository;
     private final PaymentRepository paymentRepository;
     private final HomeworkCompletionRepository homeworkCompletionRepository;
+    private final ClassService classService;
 
     public StudentService(StudentRepository studentRepository, ClassRepository classRepository,
                           AttendanceRepository attendanceRepository, PaymentRepository paymentRepository,
-                          HomeworkCompletionRepository homeworkCompletionRepository) {
+                          HomeworkCompletionRepository homeworkCompletionRepository,
+                          ClassService classService) {
         this.studentRepository = studentRepository;
         this.classRepository = classRepository;
         this.attendanceRepository = attendanceRepository;
         this.paymentRepository = paymentRepository;
         this.homeworkCompletionRepository = homeworkCompletionRepository;
+        this.classService = classService;
     }
 
     @Transactional(readOnly = true)
@@ -59,9 +60,7 @@ public class StudentService {
     public void deleteStudent(UUID id, String userId) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-        if (!student.getClassEntity().getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
+        classService.verifyClassAccess(userId, student.getClassEntity().getId());
         log.warn("Deleting student id={} and all related records", id);
         attendanceRepository.deleteByStudentId(id);
         paymentRepository.deleteByStudentId(id);

@@ -1,7 +1,9 @@
 package com.markbook.backend.controller;
 
 import com.markbook.backend.dto.UserDTO;
+import com.markbook.backend.dto.request.ChangePasswordRequest;
 import com.markbook.backend.dto.request.UpdateUserRequest;
+import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +19,17 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public UserDTO getCurrentUser(@RequestHeader("X-User-Id") String userId) {
-        return UserDTO.from(userService.getUser(userId));
+    public UserDTO getCurrentUser() {
+        return UserDTO.from(userService.getUser(SecurityUtils.getCurrentUserId()));
     }
 
     @PutMapping("/me")
-    public UserDTO updateCurrentUser(
-            @RequestHeader("X-User-Id") String userId,
-            @Valid @RequestBody UpdateUserRequest request) {
-        return UserDTO.from(userService.updateUser(userId, request.name()));
+    public UserDTO updateCurrentUser(@Valid @RequestBody UpdateUserRequest request) {
+        return UserDTO.from(userService.updateUser(SecurityUtils.getCurrentUserId(), request.name()));
+    }
+
+    @PutMapping("/me/password")
+    public void changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(SecurityUtils.getCurrentUserId(), request.currentPassword(), request.newPassword());
     }
 }

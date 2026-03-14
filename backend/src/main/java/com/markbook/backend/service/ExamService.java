@@ -5,6 +5,7 @@ import com.markbook.backend.model.Exam;
 import com.markbook.backend.model.User;
 import com.markbook.backend.repository.ExamRepository;
 import com.markbook.backend.repository.UserRepository;
+import com.markbook.backend.security.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -42,10 +43,7 @@ public class ExamService {
         log.info("Creating exam for userId={} title={} date={}", userId, title, examDate);
 
         User user = userRepository.findById(userId)
-                .orElseGet(() -> {
-                    User newUser = new User(userId, userId, userId);
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new com.markbook.backend.exception.ResourceNotFoundException("User not found"));
 
         Exam exam = new Exam();
         exam.setUser(user);
@@ -61,7 +59,7 @@ public class ExamService {
     public void deleteExam(UUID id, String userId) {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
-        if (!exam.getUser().getId().equals(userId)) {
+        if (!SecurityUtils.isAdmin() && !exam.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
         log.warn("Deleting exam id={} by userId={}", id, userId);

@@ -1,4 +1,5 @@
-import { getCurrentUser } from "../utils/authStorage";
+import { getToken, clearAuth } from "../utils/authStorage";
+import type { AuthResponse } from "../types/auth";
 import type { Student, Homework, PaymentStatus } from "../pages/classPage/types";
 import type { TermPeriod } from "../pages/classPage/termData";
 
@@ -35,29 +36,84 @@ export function invalidateCache(prefix: string): void {
   }
 }
 
-// ── Helpers ────────────────────────── ────────────────────────────────
+export function clearAllCache(): void {
+  cache.clear();
+}
 
-function getUserId(): string {
-  const user = getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
-  return user.email;
+// ── Helpers ────────────────────────────────────────────────────────────
+
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token = getToken();
+  const base: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) base["Authorization"] = `Bearer ${token}`;
+  return { ...base, ...extra };
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 401) {
+    clearAuth();
+    window.location.href = "/login";
+    throw new Error("Unauthorized");
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     let message = text || `HTTP ${res.status}`;
     try {
       const json = JSON.parse(text);
       if (json.message) message = json.message;
+      else if (json.error) message = json.error;
     } catch { /* use raw text */ }
     throw new Error(message);
   }
   return res.json() as Promise<T>;
 }
 
-function headers(extra?: Record<string, string>): Record<string, string> {
-  return { "Content-Type": "application/json", ...extra };
+// ── Auth ─────────────────────────────────────────────────────────────
+
+export async function login(email: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  return handleResponse<AuthResponse>(res);
+}
+
+export async function signup(name: string, email: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, password }),
+  });
+  return handleResponse<AuthResponse>(res);
+}
+
+export async function validateResetToken(token: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/validate-reset-token?token=${encodeURIComponent(token)}`);
+  if (!res.ok) throw new Error("Invalid link.");
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, newPassword }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    let message = text || `HTTP ${res.status}`;
+    try { const json = JSON.parse(text); if (json.message) message = json.message; } catch { /* raw text */ }
+    throw new Error(message);
+  }
 }
 
 // ── API response types (where they differ from existing frontend types) ──
@@ -109,7 +165,7 @@ export async function fetchClassOverview(classId: string): Promise<ClassOverview
   if (cached) return cached;
 
   const res = await fetch(`${API_BASE}/classes/${classId}/overview`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   const data = await handleResponse<ClassOverviewResponse>(res);
   setCache(key, data);
@@ -126,7 +182,7 @@ export interface ApiUser {
 
 export async function fetchCurrentUser(): Promise<ApiUser> {
   const res = await fetch(`${API_BASE}/users/me`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<ApiUser>(res);
 }
@@ -134,10 +190,25 @@ export async function fetchCurrentUser(): Promise<ApiUser> {
 export async function updateUserName(name: string): Promise<ApiUser> {
   const res = await fetch(`${API_BASE}/users/me`, {
     method: "PUT",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify({ name }),
   });
   return handleResponse<ApiUser>(res);
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/users/me/password`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (res.status === 401) { clearAuth(); window.location.href = "/login"; throw new Error("Unauthorized"); }
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    let message = text || `HTTP ${res.status}`;
+    try { const json = JSON.parse(text); if (json.error) message = json.error; } catch { /* raw text */ }
+    throw new Error(message);
+  }
 }
 
 // ── Classes ──────────────────────────────────────────────────────────
@@ -148,7 +219,7 @@ export async function fetchClasses(): Promise<ApiClass[]> {
   if (cached) return cached;
 
   const res = await fetch(`${API_BASE}/classes`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   const data = await handleResponse<ApiClass[]>(res);
   setCache(key, data);
@@ -163,7 +234,7 @@ export async function createClass(data: {
 }): Promise<ApiClass> {
   const res = await fetch(`${API_BASE}/classes`, {
     method: "POST",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiClass>(res);
@@ -172,7 +243,7 @@ export async function createClass(data: {
 }
 
 export async function deleteClass(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
+  const res = await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("classes");
   invalidateCache(`overview:${id}`);
@@ -182,7 +253,7 @@ export async function deleteClass(id: string): Promise<void> {
 
 export async function fetchStudents(classId: string): Promise<Student[]> {
   const res = await fetch(`${API_BASE}/classes/${classId}/students`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<Student[]>(res);
 }
@@ -190,7 +261,7 @@ export async function fetchStudents(classId: string): Promise<Student[]> {
 export async function addStudent(classId: string, name: string): Promise<Student> {
   const res = await fetch(`${API_BASE}/classes/${classId}/students`, {
     method: "POST",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify({ name }),
   });
   const result = await handleResponse<Student>(res);
@@ -199,7 +270,7 @@ export async function addStudent(classId: string, name: string): Promise<Student
 }
 
 export async function deleteStudent(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/students/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
+  const res = await fetch(`${API_BASE}/students/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -207,7 +278,7 @@ export async function deleteStudent(id: string): Promise<void> {
 
 export async function fetchTerms(): Promise<TermPeriod[]> {
   const res = await fetch(`${API_BASE}/terms`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<TermPeriod[]>(res);
 }
@@ -216,7 +287,7 @@ export async function fetchTerms(): Promise<TermPeriod[]> {
 
 export async function fetchAttendance(classId: string): Promise<ApiAttendance[]> {
   const res = await fetch(`${API_BASE}/classes/${classId}/attendance`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<ApiAttendance[]>(res);
 }
@@ -229,7 +300,7 @@ export async function updateAttendance(data: {
 }): Promise<ApiAttendance> {
   const res = await fetch(`${API_BASE}/attendance`, {
     method: "PUT",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiAttendance>(res);
@@ -241,7 +312,7 @@ export async function updateAttendance(data: {
 
 export async function fetchHomework(classId: string): Promise<Homework[]> {
   const res = await fetch(`${API_BASE}/classes/${classId}/homework`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<Homework[]>(res);
 }
@@ -252,7 +323,7 @@ export async function createHomework(
 ): Promise<Homework> {
   const res = await fetch(`${API_BASE}/classes/${classId}/homework`, {
     method: "POST",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<Homework>(res);
@@ -261,7 +332,7 @@ export async function createHomework(
 }
 
 export async function deleteHomework(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/homework/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
+  const res = await fetch(`${API_BASE}/homework/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("overview:");
 }
@@ -270,7 +341,7 @@ export async function deleteHomework(id: string): Promise<void> {
 
 export async function fetchCompletions(classId: string): Promise<ApiCompletion[]> {
   const res = await fetch(`${API_BASE}/classes/${classId}/completions`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<ApiCompletion[]>(res);
 }
@@ -281,7 +352,7 @@ export async function toggleCompletion(data: {
 }): Promise<ApiCompletion> {
   const res = await fetch(`${API_BASE}/completions`, {
     method: "PUT",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiCompletion>(res);
@@ -307,7 +378,7 @@ export async function fetchExams(start?: string, end?: string): Promise<ApiExam[
   if (end) params.set("end", end);
   const qs = params.toString();
   const url = `${API_BASE}/exams${qs ? `?${qs}` : ""}`;
-  const res = await fetch(url, { headers: { "X-User-Id": getUserId() } });
+  const res = await fetch(url, { headers: authHeaders() });
   const data = await handleResponse<ApiExam[]>(res);
   setCache(key, data);
   return data;
@@ -319,7 +390,7 @@ export async function createExam(data: {
 }): Promise<ApiExam> {
   const res = await fetch(`${API_BASE}/exams`, {
     method: "POST",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiExam>(res);
@@ -328,7 +399,7 @@ export async function createExam(data: {
 }
 
 export async function deleteExam(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/exams/${id}`, { method: "DELETE", headers: { "X-User-Id": getUserId() } });
+  const res = await fetch(`${API_BASE}/exams/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("exams:");
 }
@@ -337,7 +408,7 @@ export async function deleteExam(id: string): Promise<void> {
 
 export async function fetchPayments(classId: string): Promise<ApiPayment[]> {
   const res = await fetch(`${API_BASE}/classes/${classId}/payments`, {
-    headers: { "X-User-Id": getUserId() },
+    headers: authHeaders(),
   });
   return handleResponse<ApiPayment[]>(res);
 }
@@ -350,10 +421,44 @@ export async function updatePayment(data: {
 }): Promise<ApiPayment> {
   const res = await fetch(`${API_BASE}/payments`, {
     method: "PUT",
-    headers: headers({ "X-User-Id": getUserId() }),
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   const result = await handleResponse<ApiPayment>(res);
   invalidateCache("overview:");
   return result;
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────
+
+export async function fetchAllUsers(): Promise<ApiUser[]> {
+  const res = await fetch(`${API_BASE}/admin/users`, { headers: authHeaders() });
+  return handleResponse<ApiUser[]>(res);
+}
+
+export async function fetchUserClasses(userId: string): Promise<ApiClass[]> {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}/classes`, { headers: authHeaders() });
+  return handleResponse<ApiClass[]>(res);
+}
+
+export async function assignUserToClass(userId: string, classId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}/classes/${classId}`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  if (res.status === 401) { clearAuth(); window.location.href = "/login"; throw new Error("Unauthorized"); }
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    let message = text || `HTTP ${res.status}`;
+    try { const json = JSON.parse(text); if (json.error) message = json.error; } catch { /* raw text */ }
+    throw new Error(message);
+  }
+}
+
+export async function unassignUserFromClass(userId: string, classId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}/classes/${classId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }

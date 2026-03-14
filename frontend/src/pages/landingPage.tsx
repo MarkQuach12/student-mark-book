@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
@@ -22,6 +23,7 @@ import { formatDateISO, getMonday, getWeekDates } from "../components/calendar/c
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [exams, setExams] = useState<ApiExam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,6 +173,11 @@ const LandingPage = () => {
 
       {viewMode === "grid" ? (
         <Container maxWidth="md">
+          {classes.length === 0 && !isAdmin && (
+            <Typography color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
+              No classes assigned yet. Contact your admin to get access.
+            </Typography>
+          )}
           <Grid container spacing={2}>
             {classes.map((cls) => (
               <Grid size={{ xs: 12, sm: 4, md: 4 }} key={cls.id}>

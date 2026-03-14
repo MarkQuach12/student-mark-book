@@ -2,6 +2,8 @@ package com.markbook.backend.controller;
 
 import com.markbook.backend.dto.PaymentDTO;
 import com.markbook.backend.dto.request.UpdatePaymentRequest;
+import com.markbook.backend.security.SecurityUtils;
+import com.markbook.backend.service.ClassService;
 import com.markbook.backend.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +16,16 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final ClassService classService;
 
-    public PaymentController(PaymentService paymentService) {
+    public PaymentController(PaymentService paymentService, ClassService classService) {
         this.paymentService = paymentService;
+        this.classService = classService;
     }
 
     @GetMapping("/classes/{classId}/payments")
     public List<PaymentDTO> getPayments(@PathVariable UUID classId) {
+        classService.verifyClassAccess(SecurityUtils.getCurrentUserId(), classId);
         return paymentService.getPaymentsByClassId(classId).stream()
                 .map(PaymentDTO::from)
                 .toList();
@@ -28,6 +33,7 @@ public class PaymentController {
 
     @PutMapping("/payments")
     public PaymentDTO updatePayment(@RequestBody @Valid UpdatePaymentRequest body) {
+        classService.verifyClassAccessByStudentId(SecurityUtils.getCurrentUserId(), body.studentId());
         return PaymentDTO.from(paymentService.updatePayment(
                 body.studentId(),
                 body.termKey(),

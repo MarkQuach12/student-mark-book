@@ -8,8 +8,11 @@ import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.HomeworkCompletionRepository;
 import com.markbook.backend.repository.HomeworkRepository;
 import com.markbook.backend.repository.PaymentRepository;
+import com.markbook.backend.repository.StudentRepository;
 import com.markbook.backend.repository.TermRepository;
+import com.markbook.backend.repository.UserClassAssignmentRepository;
 import com.markbook.backend.repository.UserRepository;
+import com.markbook.backend.security.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,8 @@ public class ClassService {
     private final AttendanceRepository attendanceRepository;
     private final PaymentRepository paymentRepository;
     private final TermRepository termRepository;
+    private final UserClassAssignmentRepository assignmentRepository;
+    private final StudentRepository studentRepository;
 
     public ClassService(ClassRepository classRepository,
                         UserRepository userRepository,
@@ -38,7 +43,9 @@ public class ClassService {
                         HomeworkCompletionRepository completionRepository,
                         AttendanceRepository attendanceRepository,
                         PaymentRepository paymentRepository,
-                        TermRepository termRepository) {
+                        TermRepository termRepository,
+                        UserClassAssignmentRepository assignmentRepository,
+                        StudentRepository studentRepository) {
         this.classRepository = classRepository;
         this.userRepository = userRepository;
         this.homeworkRepository = homeworkRepository;
@@ -46,11 +53,41 @@ public class ClassService {
         this.attendanceRepository = attendanceRepository;
         this.paymentRepository = paymentRepository;
         this.termRepository = termRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.studentRepository = studentRepository;
+    }
+
+    public void verifyClassAccess(String userId, UUID classId) {
+        if (SecurityUtils.isAdmin()) return;
+        if (!assignmentRepository.existsByUserIdAndClassEntityId(userId, classId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyClassAccessByStudentId(String userId, UUID studentId) {
+        if (SecurityUtils.isAdmin()) return;
+        com.markbook.backend.model.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        verifyClassAccess(userId, student.getClassEntity().getId());
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyClassAccessByHomeworkId(String userId, UUID homeworkId) {
+        if (SecurityUtils.isAdmin()) return;
+        com.markbook.backend.model.Homework homework = homeworkRepository.findById(homeworkId)
+                .orElseThrow(() -> new ResourceNotFoundException("Homework not found"));
+        verifyClassAccess(userId, homework.getClassEntity().getId());
     }
 
     @Transactional(readOnly = true)
     public List<ClassEntity> getClassesForUser(String userId) {
-        return classRepository.findByUserId(userId);
+        if (SecurityUtils.isAdmin()) {
+            return classRepository.findAll();
+        }
+        return assignmentRepository.findByUserId(userId).stream()
+                .map(UserClassAssignment::getClassEntity)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -61,13 +98,13 @@ public class ClassService {
 
     @Transactional
     public ClassEntity createClass(String userId, String classLevel, String dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        if (!SecurityUtils.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admin can create classes");
+        }
         log.info("Creating class for userId={} level={} day={}", userId, classLevel, dayOfWeek);
 
         User user = userRepository.findById(userId)
-                .orElseGet(() -> {
-                    User newUser = new User(userId, userId, userId);
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         ClassEntity classEntity = new ClassEntity();
         classEntity.setUser(user);
@@ -85,8 +122,8 @@ public class ClassService {
     public void deleteClass(UUID id, String userId) {
         ClassEntity cls = classRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
-        if (!cls.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        if (!SecurityUtils.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admin can delete classes");
         }
         log.warn("Deleting class id={} by userId={}", id, userId);
         classRepository.delete(cls);
@@ -97,9 +134,7 @@ public class ClassService {
         log.debug("Loading overview for classId={}", classId);
         ClassEntity classEntity = classRepository.findByIdWithStudents(classId)
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
-        if (!classEntity.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
+        verifyClassAccess(userId, classId);
 
         ClassDTO classInfo = ClassDTO.from(classEntity);
         List<StudentDTO> students = classEntity.getStudents().stream().map(StudentDTO::from).toList();
@@ -107,7 +142,6 @@ public class ClassService {
         List<AttendanceDTO> attendance = attendanceRepository.findByClassIdWithFetch(classId).stream().map(AttendanceDTO::from).toList();
         List<HomeworkCompletionDTO> completions = completionRepository.findByClassIdWithFetch(classId).stream().map(HomeworkCompletionDTO::from).toList();
         List<PaymentDTO> payments = paymentRepository.findByClassIdWithFetch(classId).stream().map(PaymentDTO::from).toList();
-        // Load terms in this transaction so weeks are initialized; avoid cached detached entities from TermService
         List<TermDTO> terms = termRepository.findAllWithWeeks().stream().map(TermDTO::from).toList();
 
         return new ClassOverviewDTO(classInfo, students, homework, attendance, completions, payments, terms);

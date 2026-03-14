@@ -1,40 +1,32 @@
-import type { CurrentUser, StoredUser } from "../types/auth";
-import { STORAGE_KEYS } from "./constants";
-import { getArrayFromStorage, getSingleFromStorage, removeFromStorage, setInStorage } from "./storageUtils";
+import type { AuthUser } from "../types/auth";
 
-export type { StoredUser, CurrentUser };
+const TOKEN_KEY = "auth_token";
+const USER_KEY = "auth_user";
 
-export function getUsers(): StoredUser[] {
-  return getArrayFromStorage<StoredUser>(STORAGE_KEYS.USERS);
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
 }
 
-export function addUser(user: StoredUser): void {
-  const users = getUsers();
-  users.push(user);
-  setInStorage(STORAGE_KEYS.USERS, users);
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
-export function getCurrentUser(): CurrentUser | null {
-  const parsed = getSingleFromStorage<CurrentUser>(STORAGE_KEYS.CURRENT_USER);
-  return parsed?.name != null && parsed?.email != null ? parsed : null;
+export function getAuthUser(): AuthUser | null {
+  const raw = localStorage.getItem(USER_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as AuthUser;
+    return parsed?.id && parsed?.email ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
-export function setCurrentUser(user: CurrentUser): void {
-  setInStorage(STORAGE_KEYS.CURRENT_USER, user);
+export function setAuthUser(user: AuthUser): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
-export function clearCurrentUser(): void {
-  removeFromStorage(STORAGE_KEYS.CURRENT_USER);
-}
-
-export function findUserByEmail(email: string): StoredUser | undefined {
-  return getUsers().find((u) => u.email.toLowerCase() === email.toLowerCase());
-}
-
-export function updateUserInStorage(email: string, updates: Partial<StoredUser>): void {
-  const users = getUsers();
-  const index = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
-  if (index === -1) return;
-  users[index] = { ...users[index], ...updates };
-  setInStorage(STORAGE_KEYS.USERS, users);
+export function clearAuth(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
 }

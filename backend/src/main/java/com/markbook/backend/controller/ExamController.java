@@ -2,6 +2,7 @@ package com.markbook.backend.controller;
 
 import com.markbook.backend.dto.ExamDTO;
 import com.markbook.backend.dto.request.CreateExamRequest;
+import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.ExamService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -24,9 +25,9 @@ public class ExamController {
     }
 
     @GetMapping
-    public List<ExamDTO> getExams(@RequestHeader("X-User-Id") String userId,
-                                  @RequestParam(required = false) String start,
+    public List<ExamDTO> getExams(@RequestParam(required = false) String start,
                                   @RequestParam(required = false) String end) {
+        String userId = SecurityUtils.getCurrentUserId();
         if (start == null && end == null) {
             return examService.getExamsForUser(userId).stream().map(ExamDTO::from).toList();
         }
@@ -45,19 +46,17 @@ public class ExamController {
     }
 
     @PostMapping
-    public ExamDTO createExam(@RequestHeader("X-User-Id") String userId,
-                              @RequestBody @Valid CreateExamRequest body) {
+    public ExamDTO createExam(@RequestBody @Valid CreateExamRequest body) {
         return ExamDTO.from(examService.createExam(
-                userId,
+                SecurityUtils.getCurrentUserId(),
                 body.title(),
                 LocalDate.parse(body.examDate())
         ));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExam(@PathVariable UUID id,
-                                           @RequestHeader("X-User-Id") String userId) {
-        examService.deleteExam(id, userId);
+    public ResponseEntity<Void> deleteExam(@PathVariable UUID id) {
+        examService.deleteExam(id, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 }

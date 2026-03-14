@@ -12,8 +12,7 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { getInitials } from "../utils/stringUtils";
-import { findUserByEmail, updateUserInStorage } from "../utils/authStorage";
-import { updateUserName, fetchClasses } from "../services/api";
+import { updateUserName, changePassword, fetchClasses } from "../services/api";
 import type { ClassData } from "./classPage/types";
 import {
   CLASS_COLOR_PALETTE,
@@ -43,7 +42,7 @@ export default function SettingsPage() {
     }
     setName(user.name);
     fetchClasses().then(setClasses).catch(() => {});
-    setColorMap(getClassColorMap(user.email));
+    setColorMap(getClassColorMap(user.id));
   }, [user, navigate]);
 
   if (!user) return null;
@@ -61,7 +60,6 @@ export default function SettingsPage() {
     try {
       await updateUserName(trimmed);
       setUser({ ...user, name: trimmed });
-      updateUserInStorage(user.email, { name: trimmed });
       setToast({ type: "success", message: "Name updated successfully." });
     } catch {
       setToast({ type: "error", message: "Failed to update name. Please try again." });
@@ -72,21 +70,12 @@ export default function SettingsPage() {
 
   const handleColorChange = (classId: string, colorKey: string) => {
     if (!user) return;
-    setClassColor(user.email, classId, colorKey);
+    setClassColor(user.id, classId, colorKey);
     setColorMap((prev) => ({ ...prev, [classId]: colorKey }));
     setToast({ type: "success", message: "Color updated." });
   };
 
-  const handleUpdatePassword = () => {
-    const stored = findUserByEmail(user.email);
-    if (!stored) {
-      setToast({ type: "error", message: "User not found in storage." });
-      return;
-    }
-    if (currentPassword !== stored.password) {
-      setToast({ type: "error", message: "Current password is incorrect." });
-      return;
-    }
+  const handleUpdatePassword = async () => {
     if (newPassword.length < 8) {
       setToast({ type: "error", message: "New password must be at least 8 characters." });
       return;
@@ -95,12 +84,15 @@ export default function SettingsPage() {
       setToast({ type: "error", message: "New passwords do not match." });
       return;
     }
-
-    updateUserInStorage(user.email, { password: newPassword });
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setToast({ type: "success", message: "Password updated successfully." });
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setToast({ type: "success", message: "Password updated successfully." });
+    } catch (err) {
+      setToast({ type: "error", message: err instanceof Error ? err.message : "Failed to update password." });
+    }
   };
 
   return (
