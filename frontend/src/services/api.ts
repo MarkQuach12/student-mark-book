@@ -157,6 +157,7 @@ export interface ClassOverviewResponse {
   completions: ApiCompletion[];
   payments: ApiPayment[];
   terms: TermPeriod[];
+  exams: ApiExam[];
 }
 
 export async function fetchClassOverview(classId: string): Promise<ClassOverviewResponse> {
@@ -366,6 +367,8 @@ export interface ApiExam {
   id: string;
   title: string;
   examDate: string;
+  classId: string;
+  classLevel: string;
 }
 
 export async function fetchExams(start?: string, end?: string): Promise<ApiExam[]> {
@@ -385,6 +388,7 @@ export async function fetchExams(start?: string, end?: string): Promise<ApiExam[
 }
 
 export async function createExam(data: {
+  classId: string;
   title: string;
   examDate: string;
 }): Promise<ApiExam> {
@@ -395,6 +399,7 @@ export async function createExam(data: {
   });
   const result = await handleResponse<ApiExam>(res);
   invalidateCache("exams:");
+  invalidateCache("overview:");
   return result;
 }
 
@@ -402,6 +407,7 @@ export async function deleteExam(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/exams/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("exams:");
+  invalidateCache("overview:");
 }
 
 // ── Payments ─────────────────────────────────────────────────────────

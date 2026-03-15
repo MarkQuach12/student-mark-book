@@ -14,9 +14,16 @@ import Typography from "@mui/material/Typography";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import CalendarViewWeekIcon from "@mui/icons-material/CalendarViewWeek";
 import { useNavigate } from "react-router-dom";
-import { fetchClasses, fetchExams } from "../services/api";
+import { fetchClasses, fetchExams, deleteExam as apiDeleteExam } from "../services/api";
 import type { ClassData } from "./classPage/types";
 import type { ApiExam } from "../services/api";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
 import WeeklyCalendar from "../components/calendar/WeeklyCalendar";
 import AddExamDialog from "../components/calendar/AddExamDialog";
 import { formatDateISO, getMonday, getWeekDates } from "../components/calendar/calendarUtils";
@@ -26,8 +33,10 @@ const LandingPage = () => {
   const { isAdmin } = useAuth();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [exams, setExams] = useState<ApiExam[]>([]);
+  const [allExams, setAllExams] = useState<ApiExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [addExamOpen, setAddExamOpen] = useState(false);
+  const [pendingDeleteExam, setPendingDeleteExam] = useState<ApiExam | null>(null);
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [viewMode, setViewMode] = useState<"grid" | "calendar">(
     () => (localStorage.getItem("landingViewMode") as "grid" | "calendar") || "grid"
@@ -76,10 +85,20 @@ const LandingPage = () => {
     }
   }, [weekStart]);
 
+  const loadAllExams = useCallback(async () => {
+    try {
+      const data = await fetchExams();
+      setAllExams(data);
+    } catch {
+      // Could show error toast
+    }
+  }, []);
+
   useEffect(() => {
     if (viewMode !== "calendar") return;
     loadExams();
-  }, [viewMode, loadExams]);
+    loadAllExams();
+  }, [viewMode, loadExams, loadAllExams]);
 
   useEffect(() => {
     const refresh = () => { loadClasses(); };
@@ -92,14 +111,14 @@ const LandingPage = () => {
   }, [loadClasses]);
 
   useEffect(() => {
-    const refreshExams = () => { loadExams(); };
+    const refreshExams = () => { loadExams(); loadAllExams(); };
     window.addEventListener("examCreated", refreshExams);
     window.addEventListener("examDeleted", refreshExams);
     return () => {
       window.removeEventListener("examCreated", refreshExams);
       window.removeEventListener("examDeleted", refreshExams);
     };
-  }, [loadExams]);
+  }, [loadExams, loadAllExams]);
 
   const handlePrevWeek = () => {
     setWeekStart((prev) => {
@@ -120,6 +139,37 @@ const LandingPage = () => {
   const handleToday = () => {
     setWeekStart(getMonday(new Date()));
   };
+
+  const confirmDeleteExam = async () => {
+    if (!pendingDeleteExam) return;
+    try {
+      await apiDeleteExam(pendingDeleteExam.id);
+      setAllExams((prev) => prev.filter((e) => e.id !== pendingDeleteExam.id));
+      setExams((prev) => prev.filter((e) => e.id !== pendingDeleteExam.id));
+      window.dispatchEvent(new Event("examDeleted"));
+    } catch {
+      // Could show error toast
+    } finally {
+      setPendingDeleteExam(null);
+    }
+  };
+
+  const upcomingExams = useMemo(() => {
+    const today = formatDateISO(new Date());
+    return allExams
+      .filter((e) => e.examDate >= today)
+      .sort((a, b) => a.examDate.localeCompare(b.examDate));
+  }, [allExams]);
+
+  function daysUntil(examDate: string): string {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exam = new Date(examDate + "T00:00:00");
+    const diff = Math.round((exam.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    return `${diff} days`;
+  }
 
   if (loading) {
     return (
@@ -211,18 +261,85 @@ const LandingPage = () => {
           </Grid>
         </Container>
       ) : (
-        <Box sx={{ px: 2 }}>
-          <WeeklyCalendar
-            classes={classes}
-            exams={exams}
-            weekStart={weekStart}
-            onPrevWeek={handlePrevWeek}
-            onNextWeek={handleNextWeek}
-            onToday={handleToday}
-          />
+        <Box sx={{ display: "flex", px: 3, gap: 3 }}>
+          {/* Calendar — takes remaining space */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <WeeklyCalendar
+              classes={classes}
+              exams={exams}
+              weekStart={weekStart}
+              onPrevWeek={handlePrevWeek}
+              onNextWeek={handleNextWeek}
+              onToday={handleToday}
+            />
+          </Box>
+
+          {/* Upcoming Exams sidebar */}
+          <Box sx={{ width: 260, flexShrink: 0 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+              Upcoming Exams
+            </Typography>
+            {upcomingExams.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No upcoming exams.
+              </Typography>
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {upcomingExams.map((exam) => {
+                  const countdown = daysUntil(exam.examDate);
+                  const isUrgent = countdown === "Today" || countdown === "Tomorrow";
+                  return (
+                    <Card key={exam.id} variant="outlined" sx={{ px: 1.5, py: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+                            {exam.title}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {exam.classLevel}
+                          </Typography>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.25 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(exam.examDate + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })}
+                            </Typography>
+                            <Chip
+                              label={countdown}
+                              size="small"
+                              color={isUrgent ? "warning" : "default"}
+                              variant={isUrgent ? "filled" : "outlined"}
+                              sx={{ height: 18, fontSize: "0.65rem" }}
+                            />
+                          </Box>
+                        </Box>
+                        {isAdmin && (
+                          <IconButton size="small" color="error" onClick={() => setPendingDeleteExam(exam)} sx={{ ml: 0.5, mt: -0.5 }}>
+                            <DeleteIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        )}
+                      </Box>
+                    </Card>
+                  );
+                })}
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
-      <AddExamDialog open={addExamOpen} onClose={() => setAddExamOpen(false)} />
+      <Dialog open={pendingDeleteExam !== null} onClose={() => setPendingDeleteExam(null)}>
+        <DialogTitle>Delete Exam?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete <strong>{pendingDeleteExam?.title}</strong> ({pendingDeleteExam?.classLevel})?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setPendingDeleteExam(null)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDeleteExam}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <AddExamDialog open={addExamOpen} onClose={() => setAddExamOpen(false)} classes={classes} />
     </Box>
   );
 };

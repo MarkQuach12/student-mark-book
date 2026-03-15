@@ -9,5 +9,6 @@ public record ClassOverviewDTO(
     List<AttendanceDTO> attendance,
     List<HomeworkCompletionDTO> completions,
     List<PaymentDTO> payments,
-    List<TermDTO> terms
+    List<TermDTO> terms,
+    List<ExamDTO> exams
 ) {}

@@ -14,8 +14,8 @@ public class Exam {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "class_id", nullable = false)
+    private ClassEntity classEntity;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -31,8 +31,8 @@ public class Exam {
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public ClassEntity getClassEntity() { return classEntity; }
+    public void setClassEntity(ClassEntity classEntity) { this.classEntity = classEntity; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

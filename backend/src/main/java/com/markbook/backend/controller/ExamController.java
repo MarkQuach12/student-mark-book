@@ -49,6 +49,7 @@ public class ExamController {
     public ExamDTO createExam(@RequestBody @Valid CreateExamRequest body) {
         return ExamDTO.from(examService.createExam(
                 SecurityUtils.getCurrentUserId(),
+                UUID.fromString(body.classId()),
                 body.title(),
                 LocalDate.parse(body.examDate())
         ));

@@ -24,9 +24,9 @@ interface Props {
   onToday: () => void;
 }
 
-const PIXELS_PER_HOUR = 70;
-const TIME_COL_WIDTH = 48;
-const DAY_COL_MIN_WIDTH = 130;
+const PIXELS_PER_HOUR = 48;
+const TIME_COL_WIDTH = 44;
+const DAY_COL_MIN_WIDTH = 110;
 const DEFAULT_START_HOUR = 9;
 const DEFAULT_END_HOUR = 20;
 

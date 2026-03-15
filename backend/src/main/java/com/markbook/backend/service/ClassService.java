@@ -5,6 +5,7 @@ import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.AttendanceRepository;
 import com.markbook.backend.repository.ClassRepository;
+import com.markbook.backend.repository.ExamRepository;
 import com.markbook.backend.repository.HomeworkCompletionRepository;
 import com.markbook.backend.repository.HomeworkRepository;
 import com.markbook.backend.repository.PaymentRepository;
@@ -36,6 +37,7 @@ public class ClassService {
     private final TermRepository termRepository;
     private final UserClassAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
+    private final ExamRepository examRepository;
 
     public ClassService(ClassRepository classRepository,
                         UserRepository userRepository,
@@ -45,7 +47,8 @@ public class ClassService {
                         PaymentRepository paymentRepository,
                         TermRepository termRepository,
                         UserClassAssignmentRepository assignmentRepository,
-                        StudentRepository studentRepository) {
+                        StudentRepository studentRepository,
+                        ExamRepository examRepository) {
         this.classRepository = classRepository;
         this.userRepository = userRepository;
         this.homeworkRepository = homeworkRepository;
@@ -55,6 +58,7 @@ public class ClassService {
         this.termRepository = termRepository;
         this.assignmentRepository = assignmentRepository;
         this.studentRepository = studentRepository;
+        this.examRepository = examRepository;
     }
 
     public void verifyClassAccess(String userId, UUID classId) {
@@ -143,7 +147,8 @@ public class ClassService {
         List<HomeworkCompletionDTO> completions = completionRepository.findByClassIdWithFetch(classId).stream().map(HomeworkCompletionDTO::from).toList();
         List<PaymentDTO> payments = paymentRepository.findByClassIdWithFetch(classId).stream().map(PaymentDTO::from).toList();
         List<TermDTO> terms = termRepository.findAllWithWeeks().stream().map(TermDTO::from).toList();
+        List<ExamDTO> exams = examRepository.findByClassEntityId(classId).stream().map(ExamDTO::from).toList();
 
-        return new ClassOverviewDTO(classInfo, students, homework, attendance, completions, payments, terms);
+        return new ClassOverviewDTO(classInfo, students, homework, attendance, completions, payments, terms, exams);
     }
 }

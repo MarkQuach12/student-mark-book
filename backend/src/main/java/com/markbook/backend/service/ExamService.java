@@ -1,10 +1,12 @@
 package com.markbook.backend.service;
 
 import com.markbook.backend.exception.ResourceNotFoundException;
+import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.model.Exam;
-import com.markbook.backend.model.User;
+import com.markbook.backend.model.UserClassAssignment;
+import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.ExamRepository;
-import com.markbook.backend.repository.UserRepository;
+import com.markbook.backend.repository.UserClassAssignmentRepository;
 import com.markbook.backend.security.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,32 +23,59 @@ import java.util.UUID;
 public class ExamService {
 
     private final ExamRepository examRepository;
-    private final UserRepository userRepository;
+    private final ClassRepository classRepository;
+    private final UserClassAssignmentRepository assignmentRepository;
 
-    public ExamService(ExamRepository examRepository, UserRepository userRepository) {
+    public ExamService(ExamRepository examRepository,
+                       ClassRepository classRepository,
+                       UserClassAssignmentRepository assignmentRepository) {
         this.examRepository = examRepository;
-        this.userRepository = userRepository;
+        this.classRepository = classRepository;
+        this.assignmentRepository = assignmentRepository;
+    }
+
+    private List<UUID> getAccessibleClassIds(String userId) {
+        if (SecurityUtils.isAdmin()) {
+            return classRepository.findAll().stream().map(ClassEntity::getId).toList();
+        }
+        return assignmentRepository.findByUserId(userId).stream()
+                .map(a -> a.getClassEntity().getId())
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<Exam> getExamsForUser(String userId) {
-        return examRepository.findByUserId(userId);
+        List<UUID> classIds = getAccessibleClassIds(userId);
+        if (classIds.isEmpty()) return List.of();
+        return examRepository.findByClassEntityIdIn(classIds);
     }
 
     @Transactional(readOnly = true)
     public List<Exam> getExamsInRange(String userId, LocalDate start, LocalDate end) {
-        return examRepository.findByUserIdAndExamDateBetween(userId, start, end);
+        List<UUID> classIds = getAccessibleClassIds(userId);
+        if (classIds.isEmpty()) return List.of();
+        return examRepository.findByClassEntityIdInAndExamDateBetween(classIds, start, end);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Exam> getExamsForClass(UUID classId) {
+        return examRepository.findByClassEntityId(classId);
     }
 
     @Transactional
-    public Exam createExam(String userId, String title, LocalDate examDate) {
-        log.info("Creating exam for userId={} title={} date={}", userId, title, examDate);
+    public Exam createExam(String userId, UUID classId, String title, LocalDate examDate) {
+        log.info("Creating exam for classId={} title={} date={}", classId, title, examDate);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new com.markbook.backend.exception.ResourceNotFoundException("User not found"));
+        // Verify access
+        if (!SecurityUtils.isAdmin() && !assignmentRepository.existsByUserIdAndClassEntityId(userId, classId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        ClassEntity classEntity = classRepository.findById(classId)
+                .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
 
         Exam exam = new Exam();
-        exam.setUser(user);
+        exam.setClassEntity(classEntity);
         exam.setTitle(title);
         exam.setExamDate(examDate);
 
@@ -59,7 +88,8 @@ public class ExamService {
     public void deleteExam(UUID id, String userId) {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
-        if (!SecurityUtils.isAdmin() && !exam.getUser().getId().equals(userId)) {
+        UUID classId = exam.getClassEntity().getId();
+        if (!SecurityUtils.isAdmin() && !assignmentRepository.existsByUserIdAndClassEntityId(userId, classId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
         log.warn("Deleting exam id={} by userId={}", id, userId);

@@ -5,22 +5,28 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 import Alert from "@mui/material/Alert";
 import { createExam } from "../../services/api";
+import type { ApiClass } from "../../services/api";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  classes: ApiClass[];
+  preselectedClassId?: string;
 }
 
 interface FormErrors {
+  classId: string;
   title: string;
   examDate: string;
 }
 
-const NO_ERRORS: FormErrors = { title: "", examDate: "" };
+const NO_ERRORS: FormErrors = { classId: "", title: "", examDate: "" };
 
-export default function AddExamDialog({ open, onClose }: Props) {
+export default function AddExamDialog({ open, onClose, classes, preselectedClassId }: Props) {
+  const [classId, setClassId] = useState(preselectedClassId ?? "");
   const [title, setTitle] = useState("");
   const [examDate, setExamDate] = useState("");
   const [errors, setErrors] = useState<FormErrors>(NO_ERRORS);
@@ -28,6 +34,7 @@ export default function AddExamDialog({ open, onClose }: Props) {
   const [submitError, setSubmitError] = useState("");
 
   const resetForm = () => {
+    setClassId(preselectedClassId ?? "");
     setTitle("");
     setExamDate("");
     setErrors(NO_ERRORS);
@@ -42,6 +49,7 @@ export default function AddExamDialog({ open, onClose }: Props) {
 
   const handleCreate = async () => {
     const newErrors: FormErrors = {
+      classId: classId ? "" : "Required",
       title: title.trim() ? "" : "Required",
       examDate: examDate ? "" : "Required",
     };
@@ -54,6 +62,7 @@ export default function AddExamDialog({ open, onClose }: Props) {
 
     try {
       await createExam({
+        classId,
         title: title.trim(),
         examDate,
       });
@@ -72,6 +81,28 @@ export default function AddExamDialog({ open, onClose }: Props) {
     <Dialog open={open} onClose={handleCancel} fullWidth maxWidth="sm">
       <DialogTitle>Add Exam</DialogTitle>
       <DialogContent>
+        {!preselectedClassId && (
+          <TextField
+            select
+            label="Class"
+            fullWidth
+            margin="normal"
+            value={classId}
+            onChange={(e) => {
+              setClassId(e.target.value);
+              if (errors.classId) setErrors((prev) => ({ ...prev, classId: "" }));
+            }}
+            error={!!errors.classId}
+            helperText={errors.classId}
+          >
+            {classes.map((cls) => (
+              <MenuItem key={cls.id} value={cls.id}>
+                {cls.classLevel} — {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+
         <TextField
           label="Exam Title"
           fullWidth
