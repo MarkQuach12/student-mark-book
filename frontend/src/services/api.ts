@@ -149,6 +149,23 @@ export interface ApiPayment {
 
 // ── Class Overview (aggregate) ────────────────────────────────────────
 
+export interface ApiResource {
+  id: string;
+  title: string;
+  driveFileId: string | null;
+  driveUrl: string;
+  fileType: string | null;
+  sortOrder: number;
+}
+
+export interface ApiTopic {
+  id: string;
+  name: string;
+  visible: boolean;
+  sortOrder: number;
+  resources: ApiResource[];
+}
+
 export interface ClassOverviewResponse {
   classInfo: ApiClass;
   students: Student[];
@@ -158,6 +175,7 @@ export interface ClassOverviewResponse {
   payments: ApiPayment[];
   terms: TermPeriod[];
   exams: ApiExam[];
+  topics: ApiTopic[];
 }
 
 export async function fetchClassOverview(classId: string): Promise<ClassOverviewResponse> {
@@ -467,4 +485,80 @@ export async function unassignUserFromClass(userId: string, classId: string): Pr
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+// ── Topics ──────────────────────────────────────────────────────────
+
+export async function fetchTopics(classId: string, classLevel: string): Promise<ApiTopic[]> {
+  const res = await fetch(`${API_BASE}/topics?classId=${classId}&classLevel=${encodeURIComponent(classLevel)}`, { headers: authHeaders() });
+  return handleResponse<ApiTopic[]>(res);
+}
+
+export async function createTopic(classLevel: string, name: string): Promise<ApiTopic> {
+  const res = await fetch(`${API_BASE}/topics`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ classLevel, name }),
+  });
+  const result = await handleResponse<ApiTopic>(res);
+  invalidateCache("overview:");
+  return result;
+}
+
+export async function updateTopic(
+  topicId: string,
+  data: { name?: string; sortOrder?: number }
+): Promise<ApiTopic> {
+  const res = await fetch(`${API_BASE}/topics/${topicId}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<ApiTopic>(res);
+  invalidateCache("overview:");
+  return result;
+}
+
+export async function toggleTopicVisibility(topicId: string, classId: string): Promise<ApiTopic> {
+  const res = await fetch(`${API_BASE}/topics/${topicId}/visibility?classId=${classId}`, {
+    method: "PUT",
+    headers: authHeaders(),
+  });
+  const result = await handleResponse<ApiTopic>(res);
+  invalidateCache("overview:");
+  return result;
+}
+
+export async function deleteTopic(topicId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/topics/${topicId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  invalidateCache("overview:");
+}
+
+// ── Resources ───────────────────────────────────────────────────────
+
+export async function createResource(
+  topicId: string,
+  data: { title: string; driveUrl: string }
+): Promise<ApiResource> {
+  const res = await fetch(`${API_BASE}/topics/${topicId}/resources`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<ApiResource>(res);
+  invalidateCache("overview:");
+  return result;
+}
+
+export async function deleteResource(topicId: string, resourceId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/topics/${topicId}/resources/${resourceId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  invalidateCache("overview:");
 }

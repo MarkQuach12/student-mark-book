@@ -97,7 +97,7 @@ export default function SettingsPage() {
 
   return (
     <Container maxWidth="sm" sx={{ pt: 12, pb: 4 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Settings
       </Typography>
 
@@ -107,14 +107,14 @@ export default function SettingsPage() {
             {getInitials(user.name)}
           </Avatar>
           <Box>
-            <Typography variant="h6">{user.name}</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{user.name}</Typography>
             <Typography variant="body2" color="text.secondary">{user.email}</Typography>
           </Box>
         </Box>
 
         <Divider sx={{ mb: 3 }} />
 
-        <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+        <Typography variant="subtitle2" gutterBottom fontWeight={600}>
           Full Name
         </Typography>
         <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
@@ -132,16 +132,16 @@ export default function SettingsPage() {
 
         <Divider sx={{ my: 3 }} />
 
-        <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+        <Typography variant="subtitle2" gutterBottom fontWeight={600}>
           Email
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body2" color="text.secondary">
           {user.email}
         </Typography>
 
         <Divider sx={{ my: 3 }} />
 
-        <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+        <Typography variant="subtitle2" gutterBottom fontWeight={600}>
           Change Password
         </Typography>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
@@ -174,7 +174,7 @@ export default function SettingsPage() {
 
       {classes.length > 0 && (
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+          <Typography variant="subtitle2" gutterBottom fontWeight={600}>
             Calendar Colors
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -184,7 +184,7 @@ export default function SettingsPage() {
             {classes.map((cls) => (
               <Box key={cls.id} sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                 <Typography variant="body2" sx={{ minWidth: 180, fontWeight: 500 }}>
-                  {cls.classLevel} — {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
+                  {cls.classLevel} - {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
                   {CLASS_COLOR_PALETTE.map((opt) => (

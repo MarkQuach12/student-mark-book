@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
@@ -6,12 +7,15 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CompletionMap, Homework, PaymentStatus, Student } from "./classPage/types";
 import type { TermPeriod } from "./classPage/termData";
-import type { ApiAttendance, ApiClass, ApiCompletion, ApiPayment } from "../services/api";
+import type { ApiAttendance, ApiClass, ApiCompletion, ApiPayment, ApiTopic } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 import { findCurrentWeek } from "../utils/currentWeek";
 import {
   fetchClassOverview,
@@ -31,10 +35,12 @@ import ClassHeader from "../components/ClassHeader";
 import TermSelector from "../components/TermSelector";
 import WeekContent from "../components/WeekContent";
 import WeekTabs from "../components/WeekTabs";
+import ResourcesTab from "../components/resources/ResourcesTab";
 
 function ClassPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   // ── Data state ──
   const [classInfo, setClassInfo] = useState<ApiClass | null>(null);
@@ -44,6 +50,7 @@ function ClassPage() {
   const [allCompletions, setAllCompletions] = useState<ApiCompletion[]>([]);
   const [allPayments, setAllPayments] = useState<ApiPayment[]>([]);
   const [terms, setTerms] = useState<TermPeriod[]>([]);
+  const [topics, setTopics] = useState<ApiTopic[]>([]);
 
   // ── UI state ──
   const [selectedTermKey, setSelectedTermKey] = useState("term1");
@@ -56,6 +63,7 @@ function ClassPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   // ── Fetch all data on mount (single aggregate call) ──
   useEffect(() => {
@@ -74,6 +82,7 @@ function ClassPage() {
         setAllCompletions(data.completions);
         setAllPayments(data.payments);
         setTerms(data.terms);
+        setTopics(data.topics ?? []);
 
         // Auto-navigate to the current week based on today's date
         const current = findCurrentWeek(data.terms);
@@ -317,7 +326,7 @@ function ClassPage() {
         <Typography variant="h5" gutterBottom>
           Error
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           {error}
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
@@ -333,7 +342,7 @@ function ClassPage() {
         <Typography variant="h5" gutterBottom>
           Class not found
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           The class you are looking for does not exist or has been removed.
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
@@ -347,7 +356,7 @@ function ClassPage() {
   const weekHeading = `${currentWeekInfo.label} (${currentWeekInfo.dateRange})`;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4, pb: 6 }}>
+    <Box sx={{ px: 3, py: 4, pb: 6 }}>
       <ClassHeader
         className={classInfo.name}
         studentCount={students.length}
@@ -355,28 +364,47 @@ function ClassPage() {
         onRemoveStudent={() => setRemoveStudentOpen(true)}
         onDeleteClass={() => setDeleteClassOpen(true)}
       />
-      <TermSelector terms={terms} selectedTermKey={selectedTermKey} onTermChange={handleTermChange} />
-      <WeekTabs
-        terms={terms}
-        selectedTermKey={selectedTermKey}
-        selectedWeekIndex={selectedWeekIndex}
-        onWeekChange={setSelectedWeekIndex}
-      />
-      <WeekContent
-        weekHeading={weekHeading}
-        students={students}
-        attendanceByStudentId={attendanceByStudentId}
-        payments={payments}
-        termKey={selectedTermKey}
-        weekIndex={selectedWeekIndex}
-        homeworkForWeek={homeworkForWeek}
-        completions={completions}
-        onAttendanceChange={handleAttendanceChange}
-        onPaymentChange={handlePaymentChange}
-        onCompletionChange={setCompletion}
-        onAddHomework={() => setAddDialogOpen(true)}
-        onDeleteHomework={setPendingDeleteId}
-      />
+      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 2 }}>
+        <Tab label="Marks" />
+        <Tab label="Resources" />
+      </Tabs>
+
+      {activeTab === 0 && (
+        <>
+          <TermSelector terms={terms} selectedTermKey={selectedTermKey} onTermChange={handleTermChange} />
+          <WeekTabs
+            terms={terms}
+            selectedTermKey={selectedTermKey}
+            selectedWeekIndex={selectedWeekIndex}
+            onWeekChange={setSelectedWeekIndex}
+          />
+          <WeekContent
+            weekHeading={weekHeading}
+            students={students}
+            attendanceByStudentId={attendanceByStudentId}
+            payments={payments}
+            termKey={selectedTermKey}
+            weekIndex={selectedWeekIndex}
+            homeworkForWeek={homeworkForWeek}
+            completions={completions}
+            onAttendanceChange={handleAttendanceChange}
+            onPaymentChange={handlePaymentChange}
+            onCompletionChange={setCompletion}
+            onAddHomework={() => setAddDialogOpen(true)}
+            onDeleteHomework={setPendingDeleteId}
+          />
+        </>
+      )}
+
+      {activeTab === 1 && (
+        <ResourcesTab
+          classId={id!}
+          classLevel={classInfo.classLevel}
+          topics={topics}
+          isAdmin={isAdmin}
+          onTopicsChange={setTopics}
+        />
+      )}
       <AddStudentDialog
         open={addStudentOpen}
         onClose={() => setAddStudentOpen(false)}
@@ -443,7 +471,7 @@ function ClassPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 }
 

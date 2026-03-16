@@ -276,7 +276,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
 
         <Box sx={{ mt: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
               Students
             </Typography>
             <IconButton

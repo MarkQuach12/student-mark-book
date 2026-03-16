@@ -97,7 +97,7 @@ export default function AddExamDialog({ open, onClose, classes, preselectedClass
           >
             {classes.map((cls) => (
               <MenuItem key={cls.id} value={cls.id}>
-                {cls.classLevel} — {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
+                {cls.classLevel} - {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
               </MenuItem>
             ))}
           </TextField>

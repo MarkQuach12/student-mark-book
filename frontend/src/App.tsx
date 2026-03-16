@@ -11,6 +11,7 @@ import SettingsPage from "./pages/settingsPage";
 import ClassPage from "./pages/classPage";
 import AdminPage from "./pages/adminPage";
 import { useAuth } from "./contexts/AuthContext";
+import ChatBot from "./components/ChatBot";
 import type { ReactNode } from "react";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/classOverview/:id" element={<ProtectedRoute><ClassPage /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       </Routes>
+      <ChatBot />
     </>
   );
 }

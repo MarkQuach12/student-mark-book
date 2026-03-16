@@ -109,7 +109,7 @@ const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onT
         <Box sx={{ flex: 1 }}>
           <Button onClick={onToday} size="small" variant="outlined">Today</Button>
         </Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
           {weekLabel}
         </Typography>
         <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: 0.5 }}>

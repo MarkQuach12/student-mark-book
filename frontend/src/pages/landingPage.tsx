@@ -185,10 +185,10 @@ const LandingPage = () => {
         <Container maxWidth="md">
           <Box sx={{ position: "relative", mb: 1 }}>
             <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h4" component="h1">
+              <Typography variant="h5" component="h1">
                 MQ Student Mark Book
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 Manage your classes and student marks in one place.
               </Typography>
             </Box>
@@ -247,7 +247,7 @@ const LandingPage = () => {
                     sx={{ height: "100%" }}
                   >
                     <CardContent sx={{ textAlign: "center" }}>
-                      <Typography variant="h6" gutterBottom>
+                      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                         {cls.classLevel}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -276,7 +276,7 @@ const LandingPage = () => {
 
           {/* Upcoming Exams sidebar */}
           <Box sx={{ width: 260, flexShrink: 0 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
               Upcoming Exams
             </Typography>
             {upcomingExams.length === 0 ? (

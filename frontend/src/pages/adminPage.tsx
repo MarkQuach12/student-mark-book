@@ -91,8 +91,8 @@ export default function AdminPage() {
 
   return (
     <Container maxWidth="md" sx={{ pt: 12, pb: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Admin — User Management
+      <Typography variant="h5" gutterBottom>
+        Admin - User Management
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Assign classes to users so they can access them.
@@ -108,7 +108,7 @@ export default function AdminPage() {
 
           return (
             <Paper key={user.id} sx={{ p: 3, mb: 2 }}>
-              <Typography variant="h6">{user.name}</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{user.name}</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {user.email}
               </Typography>
@@ -127,7 +127,7 @@ export default function AdminPage() {
                   userClasses.map((cls) => (
                     <Chip
                       key={cls.id}
-                      label={`${cls.classLevel} — ${cls.dayOfWeek}`}
+                      label={`${cls.classLevel} - ${cls.dayOfWeek}`}
                       onDelete={() => handleUnassign(user.id, cls.id)}
                       color="primary"
                       variant="outlined"
@@ -149,7 +149,7 @@ export default function AdminPage() {
                     >
                       {unassignedClasses.map((cls) => (
                         <MenuItem key={cls.id} value={cls.id}>
-                          {cls.classLevel} — {cls.dayOfWeek} {cls.startTime}
+                          {cls.classLevel} - {cls.dayOfWeek} {cls.startTime}
                         </MenuItem>
                       ))}
                     </Select>

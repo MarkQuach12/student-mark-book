@@ -47,7 +47,7 @@ export default function WeekContent({
   const hasHomework = homeworkForWeek.length > 0;
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>
+      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
         {weekHeading} – Homework
       </Typography>
       <Paper variant="outlined" sx={{ overflow: "auto" }}>
