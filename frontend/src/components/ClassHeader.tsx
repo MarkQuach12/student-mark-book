@@ -19,9 +19,10 @@ interface ClassHeaderProps {
   onAddStudent: () => void;
   onRemoveStudent: () => void;
   onDeleteClass: () => void;
+  isAdmin: boolean;
 }
 
-export default function ClassHeader({ className, studentCount, onAddStudent, onRemoveStudent, onDeleteClass }: ClassHeaderProps) {
+export default function ClassHeader({ className, studentCount, onAddStudent, onRemoveStudent, onDeleteClass, isAdmin }: ClassHeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
@@ -33,64 +34,68 @@ export default function ClassHeader({ className, studentCount, onAddStudent, onR
         {className}
       </Typography>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Typography variant="body2" color="text.secondary">
-          {studentCount} students
-        </Typography>
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Button
-            size="small"
-            variant="contained"
-            disableElevation
-            startIcon={<PersonAddAlt1Icon />}
-            onClick={onAddStudent}
-            sx={{ textTransform: "none", borderRadius: 2 }}
-          >
-            Add Student
-          </Button>
-          <IconButton
-            size="small"
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-            sx={{
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 2,
-              ml: 0.5,
-            }}
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={menuOpen}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-            slotProps={{
-              paper: {
-                sx: { borderRadius: 2, minWidth: 200, mt: 0.5 },
-              },
-            }}
-          >
-            <MenuItem
-              onClick={() => { handleMenuClose(); onRemoveStudent(); }}
+        {isAdmin && (
+          <Typography variant="body2" color="text.secondary">
+            {studentCount} students
+          </Typography>
+        )}
+        {isAdmin && (
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <Button
+              size="small"
+              variant="contained"
+              disableElevation
+              startIcon={<PersonAddAlt1Icon />}
+              onClick={onAddStudent}
+              sx={{ textTransform: "none", borderRadius: 2 }}
             >
-              <ListItemIcon>
-                <PersonRemoveIcon fontSize="small" color="warning" />
-              </ListItemIcon>
-              <ListItemText>Remove Student</ListItemText>
-            </MenuItem>
-            <Divider />
-            <MenuItem
-              onClick={() => { handleMenuClose(); onDeleteClass(); }}
-              sx={{ color: "error.main" }}
+              Add Student
+            </Button>
+            <IconButton
+              size="small"
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 2,
+                ml: 0.5,
+              }}
             >
-              <ListItemIcon>
-                <DeleteForeverIcon fontSize="small" color="error" />
-              </ListItemIcon>
-              <ListItemText>Delete Class</ListItemText>
-            </MenuItem>
-          </Menu>
-        </Box>
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={menuOpen}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              slotProps={{
+                paper: {
+                  sx: { borderRadius: 2, minWidth: 200, mt: 0.5 },
+                },
+              }}
+            >
+              <MenuItem
+                onClick={() => { handleMenuClose(); onRemoveStudent(); }}
+              >
+                <ListItemIcon>
+                  <PersonRemoveIcon fontSize="small" color="warning" />
+                </ListItemIcon>
+                <ListItemText>Remove Student</ListItemText>
+              </MenuItem>
+              <Divider />
+              <MenuItem
+                onClick={() => { handleMenuClose(); onDeleteClass(); }}
+                sx={{ color: "error.main" }}
+              >
+                <ListItemIcon>
+                  <DeleteForeverIcon fontSize="small" color="error" />
+                </ListItemIcon>
+                <ListItemText>Delete Class</ListItemText>
+              </MenuItem>
+            </Menu>
+          </Box>
+        )}
       </Box>
     </Box>
   );

@@ -7,8 +7,10 @@ import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.ClassService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -33,6 +35,7 @@ public class ClassController {
 
     @PostMapping
     public ClassDTO createClass(@RequestBody @Valid CreateClassRequest body) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         ClassEntity created = classService.createClass(
                 SecurityUtils.getCurrentUserId(),
                 body.classLevel(),
@@ -50,6 +53,7 @@ public class ClassController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClass(@PathVariable UUID id) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         classService.deleteClass(id, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }

@@ -27,6 +27,7 @@ interface WeekContentProps {
   onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
   onAddHomework: () => void;
   onDeleteHomework: (hwId: string) => void;
+  isAdmin?: boolean;
 }
 
 export default function WeekContent({
@@ -43,6 +44,7 @@ export default function WeekContent({
   onCompletionChange,
   onAddHomework,
   onDeleteHomework,
+  isAdmin = true,
 }: WeekContentProps) {
   const hasHomework = homeworkForWeek.length > 0;
   return (
@@ -76,17 +78,19 @@ export default function WeekContent({
                 <TableCell key={hw.id} align="center" sx={{ minWidth: 120 }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
                     <span>{hw.title}</span>
-                    <Tooltip title="Delete homework">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDeleteHomework(hw.id)}
-                        aria-label={`Delete ${hw.title}`}
-                        sx={{ opacity: 0.5, "&:hover": { opacity: 1 } }}
-                      >
-                        <DeleteIcon fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
+                    {isAdmin && (
+                      <Tooltip title="Delete homework">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => onDeleteHomework(hw.id)}
+                          aria-label={`Delete ${hw.title}`}
+                          sx={{ opacity: 0.5, "&:hover": { opacity: 1 } }}
+                        >
+                          <DeleteIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 </TableCell>
               ))}
@@ -104,16 +108,19 @@ export default function WeekContent({
                 onAttendanceChange={onAttendanceChange}
                 onPaymentChange={onPaymentChange}
                 onCompletionChange={onCompletionChange}
+                isAdmin={isAdmin}
               />
             ))}
           </TableBody>
         </Table>
       </Paper>
-      <Box sx={{ mt: 2 }}>
-        <Button variant="outlined" size="small" onClick={onAddHomework}>
-          + Add Homework
-        </Button>
-      </Box>
+      {isAdmin && (
+        <Box sx={{ mt: 2 }}>
+          <Button variant="outlined" size="small" onClick={onAddHomework}>
+            + Add Homework
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 }

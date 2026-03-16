@@ -5,8 +5,10 @@ import com.markbook.backend.dto.request.CreateStudentRequest;
 import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.StudentService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,11 +33,13 @@ public class StudentController {
     @PostMapping("/classes/{classId}/students")
     public StudentDTO addStudent(@PathVariable UUID classId,
                                  @RequestBody @Valid CreateStudentRequest body) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         return StudentDTO.from(studentService.addStudent(classId, body.name()));
     }
 
     @DeleteMapping("/students/{id}")
     public ResponseEntity<Void> deleteStudent(@PathVariable UUID id) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         studentService.deleteStudent(id, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }

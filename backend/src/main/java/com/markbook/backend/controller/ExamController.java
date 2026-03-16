@@ -47,6 +47,7 @@ public class ExamController {
 
     @PostMapping
     public ExamDTO createExam(@RequestBody @Valid CreateExamRequest body) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         return ExamDTO.from(examService.createExam(
                 SecurityUtils.getCurrentUserId(),
                 UUID.fromString(body.classId()),
@@ -57,6 +58,7 @@ public class ExamController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteExam(@PathVariable UUID id) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         examService.deleteExam(id, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }

@@ -363,6 +363,7 @@ function ClassPage() {
         onAddStudent={() => setAddStudentOpen(true)}
         onRemoveStudent={() => setRemoveStudentOpen(true)}
         onDeleteClass={() => setDeleteClassOpen(true)}
+        isAdmin={isAdmin}
       />
       <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 2 }}>
         <Tab label="Marks" />
@@ -392,6 +393,7 @@ function ClassPage() {
             onCompletionChange={setCompletion}
             onAddHomework={() => setAddDialogOpen(true)}
             onDeleteHomework={setPendingDeleteId}
+            isAdmin={isAdmin}
           />
         </>
       )}

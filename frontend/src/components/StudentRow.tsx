@@ -15,6 +15,7 @@ interface StudentRowProps {
   onAttendanceChange: (studentId: string, inClass: boolean) => void;
   onPaymentChange: (studentId: string, status: PaymentStatus) => void;
   onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
+  isAdmin?: boolean;
 }
 
 export default function StudentRow({
@@ -26,6 +27,7 @@ export default function StudentRow({
   onAttendanceChange,
   onPaymentChange,
   onCompletionChange,
+  isAdmin = true,
 }: StudentRowProps) {
   const hasHomework = homeworkForWeek.length > 0;
   return (
@@ -36,6 +38,7 @@ export default function StudentRow({
             checked={isInClass}
             onChange={(e) => onAttendanceChange(student.id, e.target.checked)}
             size="small"
+            disabled={!isAdmin}
             sx={{
               color: "action.active",
               "&.Mui-checked": {
@@ -58,12 +61,14 @@ export default function StudentRow({
         status={paymentStatus}
         onChange={(status) => onPaymentChange(student.id, status)}
         compact={hasHomework}
+        readOnly={!isAdmin}
       />
       {homeworkForWeek.map((hw) => (
         <CompletionCell
           key={hw.id}
           completed={!!completions[`${student.id}-${hw.id}`]}
           onChange={(completed) => onCompletionChange(student.id, hw.id, completed)}
+          readOnly={!isAdmin}
         />
       ))}
     </TableRow>

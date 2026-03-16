@@ -8,9 +8,10 @@ interface PaymentCellProps {
   status: PaymentStatus;
   onChange: (status: PaymentStatus) => void;
   compact?: boolean;
+  readOnly?: boolean;
 }
 
-export default function PaymentCell({ status, onChange, compact = true }: PaymentCellProps) {
+export default function PaymentCell({ status, onChange, compact = true, readOnly = false }: PaymentCellProps) {
   const backgroundColor =
     status === "paid_cash" || status === "paid_online"
       ? "success.light"
@@ -24,6 +25,7 @@ export default function PaymentCell({ status, onChange, compact = true }: Paymen
           size="small"
           value={status}
           onChange={(e) => onChange(e.target.value as PaymentStatus)}
+          disabled={readOnly}
           sx={{
             fontSize: "0.75rem",
             minWidth: 80,

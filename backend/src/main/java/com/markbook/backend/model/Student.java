@@ -16,6 +16,10 @@ public class Student {
     @JoinColumn(name = "class_id", nullable = false)
     private ClassEntity classEntity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -29,6 +33,9 @@ public class Student {
 
     public ClassEntity getClassEntity() { return classEntity; }
     public void setClassEntity(ClassEntity classEntity) { this.classEntity = classEntity; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

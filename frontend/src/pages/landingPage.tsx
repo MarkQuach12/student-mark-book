@@ -193,7 +193,7 @@ const LandingPage = () => {
               </Typography>
             </Box>
             <Box sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 1 }}>
-              {viewMode === "calendar" && (
+              {viewMode === "calendar" && isAdmin && (
                 <Button variant="contained" size="small" onClick={() => setAddExamOpen(true)}>
                   Add Exam
                 </Button>

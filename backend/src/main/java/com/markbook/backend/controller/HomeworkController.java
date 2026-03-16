@@ -9,8 +9,10 @@ import com.markbook.backend.security.SecurityUtils;
 import com.markbook.backend.service.ClassService;
 import com.markbook.backend.service.HomeworkService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +46,7 @@ public class HomeworkController {
     @PostMapping("/classes/{classId}/homework")
     public HomeworkDTO createHomework(@PathVariable UUID classId,
                                      @RequestBody @Valid CreateHomeworkRequest body) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         classService.verifyClassAccess(SecurityUtils.getCurrentUserId(), classId);
         return HomeworkDTO.from(homeworkService.createHomework(
                 classId,
@@ -55,6 +58,7 @@ public class HomeworkController {
 
     @DeleteMapping("/homework/{id}")
     public ResponseEntity<Void> deleteHomework(@PathVariable UUID id) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         classService.verifyClassAccessByHomeworkId(SecurityUtils.getCurrentUserId(), id);
         homeworkService.deleteHomework(id);
         return ResponseEntity.noContent().build();
@@ -70,6 +74,7 @@ public class HomeworkController {
 
     @PutMapping("/completions")
     public HomeworkCompletionDTO toggleCompletion(@RequestBody @Valid ToggleCompletionRequest body) {
+        if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         classService.verifyClassAccessByStudentId(SecurityUtils.getCurrentUserId(), body.studentId());
         return HomeworkCompletionDTO.from(homeworkService.toggleCompletion(
                 body.studentId(),
