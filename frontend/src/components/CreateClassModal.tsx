@@ -21,6 +21,7 @@ import { createClass, addStudent, fetchClasses } from "../services/api";
 import type { ApiClass } from "../services/api";
 import { validateTime, timeToMinutes } from "../utils/formValidation";
 import type { ClassData } from "../pages/classPage/types";
+import DayTimelinePreview from "./calendar/DayTimelinePreview";
 
 const CLASS_LEVELS = [
   "Y11 Standard",
@@ -186,7 +187,9 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
     <Dialog open={open} onClose={handleCancel} fullWidth maxWidth="sm">
       <DialogTitle>Create New Class</DialogTitle>
       <DialogContent>
-        <FormControl fullWidth margin="normal" error={!!errors.classLevel}>
+        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <FormControl fullWidth margin="dense" size="small" error={!!errors.classLevel}>
           <InputLabel id="class-level-label">Class Level</InputLabel>
           <Select
             labelId="class-level-label"
@@ -208,14 +211,15 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
 
         <TextField
           fullWidth
-          margin="normal"
+          margin="dense"
+          size="small"
           label="Label"
           placeholder="e.g., School name or group"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
         />
 
-        <FormControl fullWidth margin="normal" error={!!errors.dayOfWeek}>
+        <FormControl fullWidth margin="dense" size="small" error={!!errors.dayOfWeek}>
           <InputLabel id="day-of-week-label">Day of the Week</InputLabel>
           <Select
             labelId="day-of-week-label"
@@ -235,10 +239,11 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
           {errors.dayOfWeek && <FormHelperText>{errors.dayOfWeek}</FormHelperText>}
         </FormControl>
 
-        <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+        <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
           <Autocomplete
             freeSolo
             fullWidth
+            size="small"
             options={TIME_OPTIONS}
             value={startTime}
             onChange={(_e, value) => {
@@ -254,7 +259,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
                 {...params}
                 label="Start Time"
                 placeholder="HH:MM"
-                margin="normal"
+                margin="dense"
                 error={!!errors.startTime}
                 helperText={errors.startTime || ""}
               />
@@ -263,6 +268,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
           <Autocomplete
             freeSolo
             fullWidth
+            size="small"
             options={TIME_OPTIONS}
             value={endTime}
             onChange={(_e, value) => {
@@ -278,7 +284,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
                 {...params}
                 label="End Time"
                 placeholder="HH:MM"
-                margin="normal"
+                margin="dense"
                 error={!!errors.endTime}
                 helperText={errors.endTime || ""}
               />
@@ -286,9 +292,9 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
           />
         </Box>
 
-        <Box sx={{ mt: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+        <Box sx={{ mt: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+            <Typography variant="caption" sx={{ fontWeight: 600 }}>
               Students
             </Typography>
             <IconButton
@@ -303,7 +309,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
           </Box>
 
           {studentNames.map((name, index) => (
-            <Box key={index} sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Box key={index} sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
               <TextField
                 label={`Student ${index + 1}`}
                 fullWidth
@@ -323,6 +329,16 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
               </IconButton>
             </Box>
           ))}
+        </Box>
+        </Box>
+        <DayTimelinePreview
+          existingClasses={existingClasses}
+          selectedDay={dayOfWeek}
+          newStartTime={startTime}
+          newEndTime={endTime}
+          newClassLevel={classLevel}
+          newLabel={label}
+        />
         </Box>
         {submitError && (
           <Alert severity="error" sx={{ mt: 2 }}>
