@@ -39,6 +39,7 @@ public class ClassService {
     private final StudentRepository studentRepository;
     private final ExamRepository examRepository;
     private final TopicService topicService;
+    private final ExtraLessonService extraLessonService;
 
     public ClassService(ClassRepository classRepository,
                         UserRepository userRepository,
@@ -50,7 +51,8 @@ public class ClassService {
                         UserClassAssignmentRepository assignmentRepository,
                         StudentRepository studentRepository,
                         ExamRepository examRepository,
-                        TopicService topicService) {
+                        TopicService topicService,
+                        ExtraLessonService extraLessonService) {
         this.classRepository = classRepository;
         this.userRepository = userRepository;
         this.homeworkRepository = homeworkRepository;
@@ -62,6 +64,7 @@ public class ClassService {
         this.studentRepository = studentRepository;
         this.examRepository = examRepository;
         this.topicService = topicService;
+        this.extraLessonService = extraLessonService;
     }
 
     public void verifyClassAccess(String userId, UUID classId) {
@@ -104,7 +107,7 @@ public class ClassService {
     }
 
     @Transactional
-    public ClassEntity createClass(String userId, String classLevel, String dayOfWeek, LocalTime startTime, LocalTime endTime) {
+    public ClassEntity createClass(String userId, String classLevel, String dayOfWeek, LocalTime startTime, LocalTime endTime, String label) {
         if (!SecurityUtils.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admin can create classes");
         }
@@ -119,6 +122,7 @@ public class ClassService {
         classEntity.setDayOfWeek(dayOfWeek);
         classEntity.setStartTime(startTime);
         classEntity.setEndTime(endTime);
+        classEntity.setLabel(label);
 
         ClassEntity saved = classRepository.save(classEntity);
         log.debug("Class created id={}", saved.getId());
@@ -152,7 +156,8 @@ public class ClassService {
         List<TermDTO> terms = termRepository.findAllWithWeeks().stream().map(TermDTO::from).toList();
         List<ExamDTO> exams = examRepository.findByClassEntityId(classId).stream().map(ExamDTO::from).toList();
         List<TopicDTO> topics = topicService.getTopicsForClass(classId, classEntity.getClassLevel());
+        List<ExtraLessonDTO> extraLessons = extraLessonService.getExtraLessonsForClass(classId);
 
-        return new ClassOverviewDTO(classInfo, students, homework, attendance, completions, payments, terms, exams, topics);
+        return new ClassOverviewDTO(classInfo, students, homework, attendance, completions, payments, terms, exams, topics, extraLessons);
     }
 }

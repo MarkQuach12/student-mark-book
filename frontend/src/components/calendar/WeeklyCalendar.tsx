@@ -1,9 +1,12 @@
 import { useMemo } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Typography from "@mui/material/Typography";
 import type { ClassData } from "../../pages/classPage/types";
-import type { ApiExam } from "../../services/api";
+import type { ApiExam, ApiExtraLesson } from "../../services/api";
 import {
   formatDateISO,
   formatDayHeader,
@@ -14,10 +17,14 @@ import {
 } from "./calendarUtils";
 import CalendarClassBlock from "./CalendarClassBlock";
 import CalendarExamBlock from "./CalendarExamBlock";
+import CalendarExtraLessonBlock from "./CalendarExtraLessonBlock";
 
 interface Props {
   classes: ClassData[];
   exams: ApiExam[];
+  extraLessons?: ApiExtraLesson[];
+  isAdmin?: boolean;
+  onExtraLessonDelete?: (id: string) => void;
   weekStart: Date;
   onPrevWeek: () => void;
   onNextWeek: () => void;
@@ -50,12 +57,12 @@ function formatWeekRange(weekDates: Date[]): string {
   return `${startDay} ${startMonth} ${startYear} - ${endDay} ${endMonth} ${endYear}`;
 }
 
-const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onToday }: Props) => {
+const WeeklyCalendar = ({ classes, exams, extraLessons = [], isAdmin = false, onExtraLessonDelete, weekStart, onPrevWeek, onNextWeek, onToday }: Props) => {
   const today = useMemo(() => new Date(), []);
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
   const weekLabel = useMemo(() => formatWeekRange(weekDates), [weekDates]);
 
-  const { startHour, endHour, classesByDate, examsByDate } = useMemo(() => {
+  const { startHour, endHour, classesByDate, examsByDate, extraLessonsByDate } = useMemo(() => {
     let minHour = DEFAULT_START_HOUR;
     let maxHour = DEFAULT_END_HOUR;
 
@@ -70,6 +77,7 @@ const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onT
     };
     const byDateClasses: Record<string, ClassData[]> = {};
     const byDateExams: Record<string, ApiExam[]> = {};
+    const byDateExtraLessons: Record<string, ApiExtraLesson[]> = {};
 
     for (const cls of classes) {
       const startMin = parseTime(cls.startTime);
@@ -83,11 +91,21 @@ const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onT
       }
     }
 
+    for (const lesson of extraLessons) {
+      const startMin = parseTime(lesson.startTime);
+      const endMin = parseTime(lesson.endTime);
+      const sHour = Math.floor(startMin / 60);
+      const eHour = Math.ceil(endMin / 60);
+      if (sHour < minHour) minHour = sHour;
+      if (eHour > maxHour) maxHour = eHour;
+    }
+
     for (const date of weekDates) {
       const dateKey = formatDateISO(date);
       const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
       byDateClasses[dateKey] = classesByDayName[dayName] ?? [];
       byDateExams[dateKey] = [];
+      byDateExtraLessons[dateKey] = [];
     }
 
     for (const exam of exams) {
@@ -96,8 +114,14 @@ const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onT
       }
     }
 
-    return { startHour: minHour, endHour: maxHour, classesByDate: byDateClasses, examsByDate: byDateExams };
-  }, [classes, exams, weekDates]);
+    for (const lesson of extraLessons) {
+      if (byDateExtraLessons[lesson.lessonDate]) {
+        byDateExtraLessons[lesson.lessonDate].push(lesson);
+      }
+    }
+
+    return { startHour: minHour, endHour: maxHour, classesByDate: byDateClasses, examsByDate: byDateExams, extraLessonsByDate: byDateExtraLessons };
+  }, [classes, exams, extraLessons, weekDates]);
 
   const totalHours = endHour - startHour;
   const gridHeight = totalHours * PIXELS_PER_HOUR;
@@ -113,8 +137,12 @@ const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onT
           {weekLabel}
         </Typography>
         <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
-          <Button onClick={onPrevWeek} size="small" variant="outlined">{"<"}</Button>
-          <Button onClick={onNextWeek} size="small" variant="outlined">{">"}</Button>
+          <IconButton onClick={onPrevWeek} size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1, width: 32, height: 32 }}>
+            <ChevronLeftIcon fontSize="small" />
+          </IconButton>
+          <IconButton onClick={onNextWeek} size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1, width: 32, height: 32 }}>
+            <ChevronRightIcon fontSize="small" />
+          </IconButton>
         </Box>
       </Box>
 
@@ -224,6 +252,17 @@ const WeeklyCalendar = ({ classes, exams, weekStart, onPrevWeek, onNextWeek, onT
                   classData={cls}
                   startHour={startHour}
                   pixelsPerHour={PIXELS_PER_HOUR}
+                />
+              ))}
+
+              {extraLessonsByDate[dateKey]?.map((lesson) => (
+                <CalendarExtraLessonBlock
+                  key={lesson.id}
+                  extraLesson={lesson}
+                  startHour={startHour}
+                  pixelsPerHour={PIXELS_PER_HOUR}
+                  isAdmin={isAdmin}
+                  onDelete={onExtraLessonDelete}
                 />
               ))}
             </Box>

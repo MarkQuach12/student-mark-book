@@ -125,6 +125,7 @@ export interface ApiClass {
   startTime: string;
   endTime: string;
   name: string;
+  label?: string;
 }
 
 export interface ApiAttendance {
@@ -176,6 +177,7 @@ export interface ClassOverviewResponse {
   terms: TermPeriod[];
   exams: ApiExam[];
   topics: ApiTopic[];
+  extraLessons: ApiExtraLesson[];
 }
 
 export async function fetchClassOverview(classId: string): Promise<ClassOverviewResponse> {
@@ -250,6 +252,7 @@ export async function createClass(data: {
   dayOfWeek: string;
   startTime: string;
   endTime: string;
+  label?: string;
 }): Promise<ApiClass> {
   const res = await fetch(`${API_BASE}/classes`, {
     method: "POST",
@@ -425,6 +428,59 @@ export async function deleteExam(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/exams/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("exams:");
+  invalidateCache("overview:");
+}
+
+// ── Extra Lessons ───────────────────────────────────────────────────
+
+export interface ApiExtraLesson {
+  id: string;
+  title: string;
+  lessonDate: string;    // "YYYY-MM-DD"
+  startTime: string;     // "HH:MM"
+  endTime: string;       // "HH:MM"
+  classId: string;
+  classLevel: string;
+}
+
+export async function fetchExtraLessons(start?: string, end?: string): Promise<ApiExtraLesson[]> {
+  const key = `extraLessons:${start ?? ""}:${end ?? ""}`;
+  const cached = getCached<ApiExtraLesson[]>(key);
+  if (cached) return cached;
+
+  const params = new URLSearchParams();
+  if (start) params.set("start", start);
+  if (end) params.set("end", end);
+  const qs = params.toString();
+  const url = `${API_BASE}/extra-lessons${qs ? `?${qs}` : ""}`;
+  const res = await fetch(url, { headers: authHeaders() });
+  const data = await handleResponse<ApiExtraLesson[]>(res);
+  setCache(key, data);
+  return data;
+}
+
+export async function createExtraLesson(data: {
+  classId: string;
+  title: string;
+  lessonDate: string;
+  startTime: string;
+  endTime: string;
+}): Promise<ApiExtraLesson> {
+  const res = await fetch(`${API_BASE}/extra-lessons`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<ApiExtraLesson>(res);
+  invalidateCache("extraLessons:");
+  invalidateCache("overview:");
+  return result;
+}
+
+export async function deleteExtraLesson(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/extra-lessons/${id}`, { method: "DELETE", headers: authHeaders() });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  invalidateCache("extraLessons:");
   invalidateCache("overview:");
 }
 

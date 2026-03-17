@@ -11,5 +11,6 @@ public record ClassOverviewDTO(
     List<PaymentDTO> payments,
     List<TermDTO> terms,
     List<ExamDTO> exams,
-    List<TopicDTO> topics
+    List<TopicDTO> topics,
+    List<ExtraLessonDTO> extraLessons
 ) {}

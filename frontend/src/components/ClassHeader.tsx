@@ -15,6 +15,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 interface ClassHeaderProps {
   className: string;
+  label?: string;
   studentCount: number;
   onAddStudent: () => void;
   onRemoveStudent: () => void;
@@ -22,7 +23,7 @@ interface ClassHeaderProps {
   isAdmin: boolean;
 }
 
-export default function ClassHeader({ className, studentCount, onAddStudent, onRemoveStudent, onDeleteClass, isAdmin }: ClassHeaderProps) {
+export default function ClassHeader({ className, label, studentCount, onAddStudent, onRemoveStudent, onDeleteClass, isAdmin }: ClassHeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
@@ -33,6 +34,11 @@ export default function ClassHeader({ className, studentCount, onAddStudent, onR
       <Typography variant="h5" component="h1" gutterBottom sx={{ textAlign: "center" }}>
         {className}
       </Typography>
+      {label && (
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: -1, mb: 1, fontStyle: "italic" }}>
+          {label}
+        </Typography>
+      )}
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         {isAdmin && (
           <Typography variant="body2" color="text.secondary">

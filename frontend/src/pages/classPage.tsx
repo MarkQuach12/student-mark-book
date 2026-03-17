@@ -359,6 +359,7 @@ function ClassPage() {
     <Box sx={{ px: 3, py: 4, pb: 6 }}>
       <ClassHeader
         className={classInfo.name}
+        label={classInfo.label}
         studentCount={students.length}
         onAddStudent={() => setAddStudentOpen(true)}
         onRemoveStudent={() => setRemoveStudentOpen(true)}

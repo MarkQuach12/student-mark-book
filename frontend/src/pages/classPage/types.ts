@@ -19,6 +19,7 @@ export interface ClassData {
   startTime: string;
   endTime: string;
   name: string; // computed display name
+  label?: string;
 }
 
 export type CompletionMap = Record<string, boolean>; // key: `${studentId}-${homeworkId}`

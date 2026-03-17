@@ -68,6 +68,7 @@ const NO_ERRORS: FormErrors = { classLevel: "", dayOfWeek: "", startTime: "", en
 
 export default function CreateClassModal({ open, onClose, onClassCreated }: CreateClassModalProps) {
   const [classLevel, setClassLevel] = useState("");
+  const [label, setLabel] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -85,6 +86,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
 
   const resetForm = () => {
     setClassLevel("");
+    setLabel("");
     setDayOfWeek("");
     setStartTime("");
     setEndTime("");
@@ -161,6 +163,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
         dayOfWeek,
         startTime: trimmedStart,
         endTime: trimmedEnd,
+        ...(label.trim() ? { label: label.trim() } : {}),
       });
 
       // Add students in parallel
@@ -202,6 +205,15 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
           </Select>
           {errors.classLevel && <FormHelperText>{errors.classLevel}</FormHelperText>}
         </FormControl>
+
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Label"
+          placeholder="e.g., School name or group"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+        />
 
         <FormControl fullWidth margin="normal" error={!!errors.dayOfWeek}>
           <InputLabel id="day-of-week-label">Day of the Week</InputLabel>

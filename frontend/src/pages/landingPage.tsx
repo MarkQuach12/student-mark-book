@@ -14,18 +14,26 @@ import Typography from "@mui/material/Typography";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import CalendarViewWeekIcon from "@mui/icons-material/CalendarViewWeek";
 import { useNavigate } from "react-router-dom";
-import { fetchClasses, fetchExams, deleteExam as apiDeleteExam } from "../services/api";
+import { fetchClasses, fetchExams, fetchExtraLessons, deleteExam as apiDeleteExam, deleteExtraLesson as apiDeleteExtraLesson } from "../services/api";
 import type { ClassData } from "./classPage/types";
-import type { ApiExam } from "../services/api";
+import type { ApiExam, ApiExtraLesson } from "../services/api";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import QuizIcon from "@mui/icons-material/Quiz";
+import SchoolIcon from "@mui/icons-material/School";
 import WeeklyCalendar from "../components/calendar/WeeklyCalendar";
 import AddExamDialog from "../components/calendar/AddExamDialog";
+import AddExtraLessonDialog from "../components/calendar/AddExtraLessonDialog";
 import { formatDateISO, getMonday, getWeekDates } from "../components/calendar/calendarUtils";
 
 const LandingPage = () => {
@@ -34,9 +42,12 @@ const LandingPage = () => {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [exams, setExams] = useState<ApiExam[]>([]);
   const [allExams, setAllExams] = useState<ApiExam[]>([]);
+  const [extraLessons, setExtraLessons] = useState<ApiExtraLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [addExamOpen, setAddExamOpen] = useState(false);
+  const [addExtraLessonOpen, setAddExtraLessonOpen] = useState(false);
   const [pendingDeleteExam, setPendingDeleteExam] = useState<ApiExam | null>(null);
+  const [addMenuAnchor, setAddMenuAnchor] = useState<null | HTMLElement>(null);
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [viewMode, setViewMode] = useState<"grid" | "calendar">(
     () => (localStorage.getItem("landingViewMode") as "grid" | "calendar") || "grid"
@@ -85,6 +96,19 @@ const LandingPage = () => {
     }
   }, [weekStart]);
 
+  const loadExtraLessons = useCallback(async () => {
+    const weekDates = getWeekDates(weekStart);
+    const start = formatDateISO(weekDates[0]);
+    const end = formatDateISO(weekDates[6]);
+
+    try {
+      const data = await fetchExtraLessons(start, end);
+      setExtraLessons(data);
+    } catch {
+      // Could show error toast
+    }
+  }, [weekStart]);
+
   const loadAllExams = useCallback(async () => {
     try {
       const data = await fetchExams();
@@ -98,7 +122,8 @@ const LandingPage = () => {
     if (viewMode !== "calendar") return;
     loadExams();
     loadAllExams();
-  }, [viewMode, loadExams, loadAllExams]);
+    loadExtraLessons();
+  }, [viewMode, loadExams, loadAllExams, loadExtraLessons]);
 
   useEffect(() => {
     const refresh = () => { loadClasses(); };
@@ -119,6 +144,16 @@ const LandingPage = () => {
       window.removeEventListener("examDeleted", refreshExams);
     };
   }, [loadExams, loadAllExams]);
+
+  useEffect(() => {
+    const refreshExtraLessons = () => { loadExtraLessons(); };
+    window.addEventListener("extraLessonCreated", refreshExtraLessons);
+    window.addEventListener("extraLessonDeleted", refreshExtraLessons);
+    return () => {
+      window.removeEventListener("extraLessonCreated", refreshExtraLessons);
+      window.removeEventListener("extraLessonDeleted", refreshExtraLessons);
+    };
+  }, [loadExtraLessons]);
 
   const handlePrevWeek = () => {
     setWeekStart((prev) => {
@@ -151,6 +186,16 @@ const LandingPage = () => {
       // Could show error toast
     } finally {
       setPendingDeleteExam(null);
+    }
+  };
+
+  const handleDeleteExtraLesson = async (id: string) => {
+    try {
+      await apiDeleteExtraLesson(id);
+      setExtraLessons((prev) => prev.filter((l) => l.id !== id));
+      window.dispatchEvent(new Event("extraLessonDeleted"));
+    } catch {
+      // Could show error toast
     }
   };
 
@@ -194,9 +239,30 @@ const LandingPage = () => {
             </Box>
             <Box sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 1 }}>
               {viewMode === "calendar" && isAdmin && (
-                <Button variant="contained" size="small" onClick={() => setAddExamOpen(true)}>
-                  Add Exam
-                </Button>
+                <>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={(e) => setAddMenuAnchor(e.currentTarget)}
+                    sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                  <Menu
+                    anchorEl={addMenuAnchor}
+                    open={Boolean(addMenuAnchor)}
+                    onClose={() => setAddMenuAnchor(null)}
+                  >
+                    <MenuItem onClick={() => { setAddMenuAnchor(null); setAddExamOpen(true); }}>
+                      <ListItemIcon><QuizIcon fontSize="small" /></ListItemIcon>
+                      <ListItemText>Add Exam</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => { setAddMenuAnchor(null); setAddExtraLessonOpen(true); }}>
+                      <ListItemIcon><SchoolIcon fontSize="small" /></ListItemIcon>
+                      <ListItemText>Add Extra Lesson</ListItemText>
+                    </MenuItem>
+                  </Menu>
+                </>
               )}
               <ToggleButtonGroup
                 value={viewMode}
@@ -250,6 +316,11 @@ const LandingPage = () => {
                       <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                         {cls.classLevel}
                       </Typography>
+                      {cls.label && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5, fontStyle: "italic" }}>
+                          {cls.label}
+                        </Typography>
+                      )}
                       <Typography variant="body2" color="text.secondary">
                         {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
                       </Typography>
@@ -267,6 +338,9 @@ const LandingPage = () => {
             <WeeklyCalendar
               classes={classes}
               exams={exams}
+              extraLessons={extraLessons}
+              isAdmin={isAdmin}
+              onExtraLessonDelete={handleDeleteExtraLesson}
               weekStart={weekStart}
               onPrevWeek={handlePrevWeek}
               onNextWeek={handleNextWeek}
@@ -340,6 +414,12 @@ const LandingPage = () => {
         </DialogActions>
       </Dialog>
       <AddExamDialog open={addExamOpen} onClose={() => setAddExamOpen(false)} classes={classes} />
+      <AddExtraLessonDialog
+        open={addExtraLessonOpen}
+        classes={classes}
+        onClose={() => setAddExtraLessonOpen(false)}
+        onCreated={() => loadExtraLessons()}
+      />
     </Box>
   );
 };

@@ -41,7 +41,8 @@ public class ClassController {
                 body.classLevel(),
                 body.dayOfWeek(),
                 LocalTime.parse(body.startTime()),
-                LocalTime.parse(body.endTime())
+                LocalTime.parse(body.endTime()),
+                body.label()
         );
         return ClassDTO.from(created);
     }

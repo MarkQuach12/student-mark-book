@@ -7,6 +7,7 @@ C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\mar
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\AuthController.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\ClassController.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\ExamController.java
+C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\ExtraLessonController.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\HealthController.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\HomeworkController.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\controller\PaymentController.java
@@ -20,12 +21,14 @@ C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\mar
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\ClassDTO.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\ClassOverviewDTO.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\ExamDTO.java
+C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\ExtraLessonDTO.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\HomeworkCompletionDTO.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\HomeworkDTO.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\PaymentDTO.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\ChangePasswordRequest.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\CreateClassRequest.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\CreateExamRequest.java
+C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\CreateExtraLessonRequest.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\CreateHomeworkRequest.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\CreateResourceRequest.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\dto\request\CreateStudentRequest.java
@@ -51,6 +54,7 @@ C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\mar
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\ClassEntity.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\ClassTopicVisibility.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\Exam.java
+C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\ExtraLesson.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\Homework.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\HomeworkCompletion.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\model\PasswordResetToken.java
@@ -66,6 +70,7 @@ C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\mar
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\ClassRepository.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\ClassTopicVisibilityRepository.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\ExamRepository.java
+C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\ExtraLessonRepository.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\HomeworkCompletionRepository.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\HomeworkRepository.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\repository\PasswordResetTokenRepository.java
@@ -84,6 +89,7 @@ C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\mar
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\ClassService.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\EmailService.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\ExamService.java
+C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\ExtraLessonService.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\HomeworkService.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\PaymentService.java
 C:\Users\quach\OneDrive\Projects\student-mark-book\backend\src\main\java\com\markbook\backend\service\ResourceService.java

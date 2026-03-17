@@ -51,6 +51,11 @@ const CalendarClassBlock = ({ classData, startHour, pixelsPerHour }: Props) => {
       >
         {classData.classLevel}
       </Typography>
+      {classData.label && (
+        <Typography variant="caption" sx={{ opacity: 0.85, fontSize: "0.65rem", lineHeight: 1.2 }}>
+          {classData.label}
+        </Typography>
+      )}
       <Typography variant="caption" sx={{ opacity: 0.9, fontSize: "0.7rem" }}>
         {formatMinutes(startMinutes)}–{formatMinutes(endMinutes)}
       </Typography>

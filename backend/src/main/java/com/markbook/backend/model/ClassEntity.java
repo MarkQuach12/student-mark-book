@@ -30,6 +30,9 @@ public class ClassEntity {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
+    @Column(length = 100)
+    private String label;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
@@ -58,6 +61,9 @@ public class ClassEntity {
 
     public LocalTime getEndTime() { return endTime; }
     public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+
+    public String getLabel() { return label; }
+    public void setLabel(String label) { this.label = label; }
 
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }

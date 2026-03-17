@@ -7,5 +7,6 @@ public record CreateClassRequest(
         @NotBlank(message = "classLevel is required") String classLevel,
         @NotBlank(message = "dayOfWeek is required") String dayOfWeek,
         @NotNull(message = "startTime is required") String startTime,
-        @NotNull(message = "endTime is required") String endTime
+        @NotNull(message = "endTime is required") String endTime,
+        String label
 ) {}
