@@ -14,6 +14,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import SendIcon from "@mui/icons-material/Send";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import { sendChatMessage } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Message {
   id: number;
@@ -32,19 +33,30 @@ function renderMarkdown(text: string) {
   });
 }
 
+const initialMessages = (): Message[] => [
+  {
+    id: 0,
+    text: "Hi! I'm your Mark Book assistant. Ask me about your classes, exams, payments, or attendance!",
+    sender: "bot",
+    timestamp: new Date(),
+  },
+];
+
 export default function ChatBot() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 0,
-      text: "Hi! I'm your Mark Book assistant. Ask me about your classes, exams, payments, or attendance!",
-      sender: "bot",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Reset chat when user changes (login/logout/switch account)
+  useEffect(() => {
+    setMessages(initialMessages());
+    setInput("");
+    setLoading(false);
+    setOpen(false);
+  }, [user?.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
