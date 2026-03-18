@@ -1,6 +1,31 @@
+# IDE / Editor
 .cursor/
+.idea/
+*.iml
+.vscode/
+
+# Claude Code / AI tooling
+.claude/
+.agents/
+skills-lock.json
+
+# Stray files
+com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate
+
+# Backend
 backend/.env
 backend/node_modules/
-backend/package.json
-package-lock.json
+backend/target/
 backend/src/main/resources/application-local.properties
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+*.env
+*.env.local
