@@ -1,6 +1,6 @@
 # Student Mark Book
 
-A full-stack web app for managing student classes, attendance, homework, exams, and payments, organized by terms and weeks.   
+A full-stack web app for managing student classes, attendance, homework, exams, and payments, organized by terms and weeks made specific for the NSW HSC Y11 and Y12 students.
   
 Table of Contents
 
