@@ -1,33 +1,13 @@
+# Student Mark Book
 
-
-
-
-
-
+A full-stack web app for managing student classes, attendance, homework, exams, and payments, organized by terms and weeks made specific for the NSW HSC Y11 and Y12 students.
   
-
-
-### Student Mark Book
-
-A full-stack web app for managing student classes, attendance, homework, exams, and payments, organized by terms and weeks.   
-  
-[Report Bug](https://github.com/MarkQuach12/student-mark-book/issues/new?labels=bug) · [Request Feature](https://github.com/MarkQuach12/student-mark-book/issues/new?labels=enhancement)
-
-
-
 Table of Contents
 
 1. [About The Project](#about-the-project)
-  - [Built With](#built-with)
 2. [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
 3. [Usage](#usage)
 4. [Roadmap](#roadmap)
-5. [Contributing](#contributing)
-6. [Contact](#contact)
-
-
 
 ## About The Project
 
@@ -47,8 +27,6 @@ Student Mark Book is a comprehensive classroom management tool designed for educ
 - **Chatbot:** Built-in assistant for quick help
 - **Password Reset:** Email-based password recovery via Resend
 
-([back to top](#readme-top))
-
 ### Built With
 
 - [React](https://reactjs.org/)
@@ -58,16 +36,10 @@ Student Mark Book is a comprehensive classroom management tool designed for educ
 - [Spring Boot](https://spring.io/projects/spring-boot)
 - [PostgreSQL](https://www.postgresql.org/)
 
-([back to top](#readme-top))
-
-
-
 ## Getting Started
-
 To get a local copy up and running, follow these steps.
 
 ### Prerequisites
-
 - **Node.js** and **npm**
   ```sh
   npm install npm@latest -g
@@ -89,17 +61,16 @@ To get a local copy up and running, follow these steps.
    npm run dev
   ```
    The frontend runs on `http://localhost:5173`
+
+   
 3. **Backend:** Configure the database connection in `backend/src/main/resources/application.properties`, then start the server
   ```sh
    cd backend
    mvn spring-boot:run
   ```
    The backend runs on `http://localhost:8080`
+   
 4. **Database:** Apply the SQL migration scripts in `backend/sql/` to your PostgreSQL database in order
-
-([back to top](#readme-top))
-
-
 
 ## Usage
 
@@ -109,8 +80,6 @@ To get a local copy up and running, follow these steps.
 4. **Track progress:** Use the term and week selectors to record attendance, homework completion, and payments
 5. **Schedule exams:** Switch to the calendar view to add and view upcoming exams
 6. **Admin panel:** Admin users can manage all classes and assign users to classes
-
-([back to top](#readme-top))
 
 
 
@@ -131,8 +100,4 @@ To get a local copy up and running, follow these steps.
 - [ ] Export data to CSV/PDF
 - [ ] Student performance analytics and reports
 - [ ] Mobile-responsive improvements
-
-See the [open issues](https://github.com/MarkQuach12/student-mark-book/issues) for a full list of proposed features and known issues.
-
-([back to top](#readme-top))
 
