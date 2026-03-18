@@ -5,7 +5,9 @@ import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.AttendanceRepository;
 import com.markbook.backend.repository.ClassRepository;
+import com.markbook.backend.repository.ClassTopicVisibilityRepository;
 import com.markbook.backend.repository.ExamRepository;
+import com.markbook.backend.repository.ExtraLessonRepository;
 import com.markbook.backend.repository.HomeworkCompletionRepository;
 import com.markbook.backend.repository.HomeworkRepository;
 import com.markbook.backend.repository.PaymentRepository;
@@ -38,6 +40,8 @@ public class ClassService {
     private final UserClassAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
     private final ExamRepository examRepository;
+    private final ExtraLessonRepository extraLessonRepository;
+    private final ClassTopicVisibilityRepository classTopicVisibilityRepository;
     private final TopicService topicService;
     private final ExtraLessonService extraLessonService;
 
@@ -51,6 +55,8 @@ public class ClassService {
                         UserClassAssignmentRepository assignmentRepository,
                         StudentRepository studentRepository,
                         ExamRepository examRepository,
+                        ExtraLessonRepository extraLessonRepository,
+                        ClassTopicVisibilityRepository classTopicVisibilityRepository,
                         TopicService topicService,
                         ExtraLessonService extraLessonService) {
         this.classRepository = classRepository;
@@ -63,6 +69,8 @@ public class ClassService {
         this.assignmentRepository = assignmentRepository;
         this.studentRepository = studentRepository;
         this.examRepository = examRepository;
+        this.extraLessonRepository = extraLessonRepository;
+        this.classTopicVisibilityRepository = classTopicVisibilityRepository;
         this.topicService = topicService;
         this.extraLessonService = extraLessonService;
     }
@@ -131,12 +139,29 @@ public class ClassService {
 
     @Transactional
     public void deleteClass(UUID id, String userId) {
-        ClassEntity cls = classRepository.findById(id)
+        ClassEntity cls = classRepository.findByIdWithStudents(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
         if (!SecurityUtils.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admin can delete classes");
         }
-        log.warn("Deleting class id={} by userId={}", id, userId);
+        log.warn("Deleting class id={} and all related records by userId={}", id, userId);
+
+        // Delete student-level records first (attendance, payments, completions)
+        if (cls.getStudents() != null) {
+            for (Student student : cls.getStudents()) {
+                attendanceRepository.deleteByStudentId(student.getId());
+                paymentRepository.deleteByStudentId(student.getId());
+                completionRepository.deleteByStudentId(student.getId());
+            }
+        }
+
+        // Delete class-level records
+        examRepository.deleteByClassEntityId(id);
+        extraLessonRepository.deleteByClassEntityId(id);
+        classTopicVisibilityRepository.deleteByClassEntityId(id);
+        assignmentRepository.deleteByClassEntityId(id);
+
+        // Delete class (cascades to students and homework)
         classRepository.delete(cls);
     }
 

@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "5"
+  },
   "permissions": {
     "allow": [
       "Bash(./mvnw compile:*)",
@@ -8,7 +11,11 @@
       "mcp__Neon__run_sql_transaction",
       "Bash(find:*)",
       "Bash(cd:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(mvn compile:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git log:*)",
+      "Bash(mvn spring-boot:run)"
     ]
   }
 }

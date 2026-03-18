@@ -19,7 +19,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { findCurrentWeek } from "../utils/currentWeek";
 import {
   fetchClassOverview,
-  addStudent as apiAddStudent,
   deleteStudent as apiDeleteStudent,
   createHomework as apiCreateHomework,
   deleteClass as apiDeleteClass,
@@ -29,7 +28,6 @@ import {
   updatePayment as apiUpdatePayment,
 } from "../services/api";
 import AddHomeworkDialog from "../components/AddHomeworkDialog";
-import AddStudentDialog from "../components/AddStudentDialog";
 import RemoveStudentDialog from "../components/RemoveStudentDialog";
 import ClassHeader from "../components/ClassHeader";
 import TermSelector from "../components/TermSelector";
@@ -55,7 +53,6 @@ function ClassPage() {
   // ── UI state ──
   const [selectedTermKey, setSelectedTermKey] = useState("term1");
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(1);
-  const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [removeStudentOpen, setRemoveStudentOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -184,16 +181,6 @@ function ClassPage() {
     }
   };
 
-  const handleAddStudent = async (name: string) => {
-    if (!id) return;
-    try {
-      const newStudent = await apiAddStudent(id, name);
-      setStudents((prev) => [...prev, newStudent].sort((a, b) => a.name.localeCompare(b.name)));
-    } catch {
-      // Could show error toast
-    }
-  };
-
   const handleRemoveStudent = async (studentId: string) => {
     try {
       await apiDeleteStudent(studentId);
@@ -294,7 +281,8 @@ function ClassPage() {
       termKey: selectedTermKey,
       weekIndex: selectedWeekIndex,
       status,
-    }).catch(() => {
+    }).catch((err) => {
+      console.error("Payment update failed:", err);
       // Revert on failure
       setAllPayments((prev) => {
         const idx = prev.findIndex(
@@ -361,7 +349,6 @@ function ClassPage() {
         className={classInfo.name}
         label={classInfo.label}
         studentCount={students.length}
-        onAddStudent={() => setAddStudentOpen(true)}
         onRemoveStudent={() => setRemoveStudentOpen(true)}
         onDeleteClass={() => setDeleteClassOpen(true)}
         isAdmin={isAdmin}
@@ -408,11 +395,6 @@ function ClassPage() {
           onTopicsChange={setTopics}
         />
       )}
-      <AddStudentDialog
-        open={addStudentOpen}
-        onClose={() => setAddStudentOpen(false)}
-        onAdd={handleAddStudent}
-      />
       <RemoveStudentDialog
         open={removeStudentOpen}
         students={students}

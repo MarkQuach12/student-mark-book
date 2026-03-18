@@ -22,4 +22,6 @@ public interface ExtraLessonRepository extends JpaRepository<ExtraLesson, UUID> 
 
     @Query("SELECT e FROM ExtraLesson e JOIN FETCH e.classEntity WHERE e.classEntity.id IN :classIds AND e.lessonDate BETWEEN :start AND :end")
     List<ExtraLesson> findByClassEntityIdInAndLessonDateBetween(@Param("classIds") List<UUID> classIds, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    void deleteByClassEntityId(UUID classId);
 }

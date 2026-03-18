@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface ClassTopicVisibilityRepository extends JpaRepository<ClassTopicVisibility, UUID> {
     List<ClassTopicVisibility> findByClassEntityId(UUID classId);
     Optional<ClassTopicVisibility> findByClassEntityIdAndTopicId(UUID classId, UUID topicId);
+    void deleteByClassEntityId(UUID classId);
 }

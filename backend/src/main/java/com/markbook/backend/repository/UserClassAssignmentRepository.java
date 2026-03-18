@@ -20,4 +20,6 @@ public interface UserClassAssignmentRepository extends JpaRepository<UserClassAs
     @Transactional
     @Modifying
     void deleteByUserIdAndClassEntityId(String userId, UUID classId);
+
+    void deleteByClassEntityId(UUID classId);
 }

@@ -7,11 +7,13 @@ import {
   Paper,
   Fade,
   Avatar,
+  CircularProgress,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
-import CloseIcon from "@mui/icons-material/Close";
+import RemoveIcon from "@mui/icons-material/Remove";
 import SendIcon from "@mui/icons-material/Send";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
+import { sendChatMessage } from "../services/api";
 
 interface Message {
   id: number;
@@ -20,37 +22,37 @@ interface Message {
   timestamp: Date;
 }
 
-const mockResponses = [
-  "Hi there! How can I help you today?",
-  "That's a great question! Let me think about that.",
-  "Sure, I can help you with that.",
-  "Could you provide more details?",
-  "I'm here to assist you with anything related to your classes.",
-  "You can manage your students, homework, and attendance from the main page.",
-  "Let me know if there's anything else I can help with!",
-  "Try checking the settings page for more options.",
-];
+function renderMarkdown(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 0,
-      text: "Hi! I'm your Mark Book assistant. How can I help you?",
+      text: "Hi! I'm your Mark Book assistant. Ask me about your classes, exams, payments, or attendance!",
       sender: "bot",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || loading) return;
 
     const userMsg: Message = {
       id: Date.now(),
@@ -60,17 +62,28 @@ export default function ChatBot() {
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setLoading(true);
 
-    // Mock bot response after a short delay
-    setTimeout(() => {
+    try {
+      const reply = await sendChatMessage(trimmed);
       const botMsg: Message = {
         id: Date.now() + 1,
-        text: mockResponses[Math.floor(Math.random() * mockResponses.length)],
+        text: reply,
         sender: "bot",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMsg]);
-    }, 800);
+    } catch {
+      const errorMsg: Message = {
+        id: Date.now() + 1,
+        text: "Sorry, something went wrong. Please try again.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,7 +123,7 @@ export default function ChatBot() {
               </Typography>
             </Box>
             <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: "white" }}>
-              <CloseIcon fontSize="small" />
+              <RemoveIcon fontSize="small" />
             </IconButton>
           </Box>
 
@@ -153,12 +166,37 @@ export default function ChatBot() {
                     boxShadow: 1,
                     fontSize: "0.875rem",
                     lineHeight: 1.4,
+                    whiteSpace: "pre-wrap",
                   }}
                 >
-                  {msg.text}
+                  {renderMarkdown(msg.text)}
                 </Box>
               </Box>
             ))}
+            {loading && (
+              <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
+                <Avatar sx={{ width: 28, height: 28, bgcolor: "primary.main" }}>
+                  <SmartToyIcon sx={{ fontSize: 16 }} />
+                </Avatar>
+                <Box
+                  sx={{
+                    px: 1.5,
+                    py: 1,
+                    borderRadius: 2,
+                    bgcolor: "white",
+                    boxShadow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <CircularProgress size={16} />
+                  <Typography variant="caption" color="text.secondary">
+                    Thinking...
+                  </Typography>
+                </Box>
+              </Box>
+            )}
             <div ref={messagesEndRef} />
           </Box>
 
@@ -185,6 +223,7 @@ export default function ChatBot() {
                   handleSend();
                 }
               }}
+              disabled={loading}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -195,7 +234,7 @@ export default function ChatBot() {
             <IconButton
               color="primary"
               onClick={handleSend}
-              disabled={!input.trim()}
+              disabled={!input.trim() || loading}
               size="small"
             >
               <SendIcon fontSize="small" />

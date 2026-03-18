@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
@@ -8,7 +7,6 @@ import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -17,13 +15,12 @@ interface ClassHeaderProps {
   className: string;
   label?: string;
   studentCount: number;
-  onAddStudent: () => void;
   onRemoveStudent: () => void;
   onDeleteClass: () => void;
   isAdmin: boolean;
 }
 
-export default function ClassHeader({ className, label, studentCount, onAddStudent, onRemoveStudent, onDeleteClass, isAdmin }: ClassHeaderProps) {
+export default function ClassHeader({ className, label, studentCount, onRemoveStudent, onDeleteClass, isAdmin }: ClassHeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
@@ -47,16 +44,6 @@ export default function ClassHeader({ className, label, studentCount, onAddStude
         )}
         {isAdmin && (
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Button
-              size="small"
-              variant="contained"
-              disableElevation
-              startIcon={<PersonAddAlt1Icon />}
-              onClick={onAddStudent}
-              sx={{ textTransform: "none", borderRadius: 2 }}
-            >
-              Add Student
-            </Button>
             <IconButton
               size="small"
               onClick={(e) => setAnchorEl(e.currentTarget)}

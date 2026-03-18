@@ -18,4 +18,6 @@ public interface ExamRepository extends JpaRepository<Exam, UUID> {
 
     @Query("SELECT e FROM Exam e JOIN FETCH e.classEntity WHERE e.classEntity.id IN :classIds AND e.examDate BETWEEN :start AND :end")
     List<Exam> findByClassEntityIdInAndExamDateBetween(@Param("classIds") List<UUID> classIds, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    void deleteByClassEntityId(UUID classId);
 }

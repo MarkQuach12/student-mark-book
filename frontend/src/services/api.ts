@@ -618,3 +618,15 @@ export async function deleteResource(topicId: string, resourceId: string): Promi
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   invalidateCache("overview:");
 }
+
+// ── Chat ────────────────────────────────────────────────────────────
+
+export async function sendChatMessage(message: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/chat`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ message }),
+  });
+  const data = await handleResponse<{ reply: string }>(res);
+  return data.reply;
+}

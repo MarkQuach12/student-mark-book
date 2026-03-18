@@ -25,17 +25,19 @@ public class StudentService {
     private final PaymentRepository paymentRepository;
     private final HomeworkCompletionRepository homeworkCompletionRepository;
     private final ClassService classService;
+    private final PaymentService paymentService;
 
     public StudentService(StudentRepository studentRepository, ClassRepository classRepository,
                           AttendanceRepository attendanceRepository, PaymentRepository paymentRepository,
                           HomeworkCompletionRepository homeworkCompletionRepository,
-                          ClassService classService) {
+                          ClassService classService, PaymentService paymentService) {
         this.studentRepository = studentRepository;
         this.classRepository = classRepository;
         this.attendanceRepository = attendanceRepository;
         this.paymentRepository = paymentRepository;
         this.homeworkCompletionRepository = homeworkCompletionRepository;
         this.classService = classService;
+        this.paymentService = paymentService;
     }
 
     @Transactional(readOnly = true)
@@ -52,8 +54,12 @@ public class StudentService {
         Student student = new Student();
         student.setClassEntity(classEntity);
         student.setName(name);
+        student = studentRepository.save(student);
 
-        return studentRepository.save(student);
+        // Seed unpaid payment records from current week onward
+        paymentService.seedPaymentsForNewStudent(student);
+
+        return student;
     }
 
     @Transactional
