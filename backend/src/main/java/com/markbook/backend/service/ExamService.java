@@ -3,7 +3,6 @@ package com.markbook.backend.service;
 import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.model.Exam;
-import com.markbook.backend.model.UserClassAssignment;
 import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.ExamRepository;
 import com.markbook.backend.repository.UserClassAssignmentRepository;
