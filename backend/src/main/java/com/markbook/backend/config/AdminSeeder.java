@@ -29,6 +29,10 @@ public class AdminSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        if (adminEmail == null || adminEmail.isBlank() || adminPassword == null || adminPassword.isBlank()) {
+            log.warn("ADMIN_EMAIL or ADMIN_PASSWORD not set — skipping admin seeding");
+            return;
+        }
         if (userRepository.findById(adminEmail).isEmpty()) {
             User admin = new User(adminEmail, "Admin", adminEmail);
             admin.setPasswordHash(passwordEncoder.encode(adminPassword));

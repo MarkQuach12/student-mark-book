@@ -3,7 +3,7 @@ import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
 import { signup } from "../services/api";
 import { setToken } from "../utils/authStorage";
-import { validateEmail } from "../utils/formValidation";
+import { validateEmail, validatePassword } from "../utils/formValidation";
 import { useAuth } from "../contexts/AuthContext";
 import AuthForm from "../components/AuthForm";
 
@@ -25,7 +25,8 @@ export default function SignUpPage() {
     const emailError = validateEmail(email);
     if (emailError) { setError(emailError); return; }
     if (!password) { setError("Password is required."); return; }
-    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    const passwordError = validatePassword(password);
+    if (passwordError) { setError(passwordError); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
 
     setLoading(true);
@@ -91,7 +92,7 @@ export default function SignUpPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         disabled={loading}
-        helperText="At least 8 characters"
+        helperText="At least 8 characters, with uppercase, lowercase, digit, and special character"
       />
       <TextField
         margin="normal"

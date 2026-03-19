@@ -4,6 +4,15 @@ export function validateEmail(email: string): string {
   return "";
 }
 
+export function validatePassword(password: string): string {
+  if (password.length < 8) return "Password must be at least 8 characters.";
+  if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter.";
+  if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
+  if (!/\d/.test(password)) return "Password must contain at least one digit.";
+  if (!/[@$!%*?&]/.test(password)) return "Password must contain at least one special character (@$!%*?&).";
+  return "";
+}
+
 export function validateTime(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "Required";

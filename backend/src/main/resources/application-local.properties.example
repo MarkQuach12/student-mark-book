@@ -1,0 +1,23 @@
+# Database (Neon PostgreSQL)
+spring.datasource.url=jdbc:postgresql://YOUR_HOST/YOUR_DB?sslmode=require
+spring.datasource.username=YOUR_DB_USER
+spring.datasource.password=YOUR_DB_PASSWORD
+
+# Resend email
+resend.api-key=YOUR_RESEND_API_KEY
+resend.from-email=onboarding@resend.dev
+
+# Google OAuth (Drive integration)
+GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
+GOOGLE_REDIRECT_URI=http://localhost:8080/api/drive/callback
+
+# Anthropic (Claude AI chatbot)
+anthropic.api-key=YOUR_ANTHROPIC_API_KEY
+
+# JWT — must be at least 32 characters
+JWT_SECRET=YOUR_JWT_SECRET_AT_LEAST_32_CHARS
+
+# Admin seed credentials (leave empty to skip admin seeding)
+ADMIN_EMAIL=admin@markbook.com
+ADMIN_PASSWORD=YOUR_ADMIN_PASSWORD

@@ -9,6 +9,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { validateResetToken, resetPassword } from "../services/api";
+import { validatePassword } from "../utils/formValidation";
 import AuthForm from "../components/AuthForm";
 
 export default function ResetPasswordPage() {
@@ -35,7 +36,8 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (newPassword.length < 8) { setError("Password must be at least 8 characters."); return; }
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) { setError(passwordError); return; }
     if (newPassword !== confirmPassword) { setError("Passwords do not match."); return; }
 
     setLoading(true);
@@ -104,7 +106,7 @@ export default function ResetPasswordPage() {
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         disabled={loading}
-        helperText="At least 8 characters"
+        helperText="At least 8 characters, with uppercase, lowercase, digit, and special character"
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">

@@ -3,6 +3,7 @@ package com.markbook.backend.controller;
 import com.markbook.backend.dto.StudentDTO;
 import com.markbook.backend.dto.request.CreateStudentRequest;
 import com.markbook.backend.security.SecurityUtils;
+import com.markbook.backend.service.ClassService;
 import com.markbook.backend.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,13 +19,16 @@ import java.util.UUID;
 public class StudentController {
 
     private final StudentService studentService;
+    private final ClassService classService;
 
-    public StudentController(StudentService studentService) {
+    public StudentController(StudentService studentService, ClassService classService) {
         this.studentService = studentService;
+        this.classService = classService;
     }
 
     @GetMapping("/classes/{classId}/students")
     public List<StudentDTO> getStudents(@PathVariable UUID classId) {
+        classService.verifyClassAccess(SecurityUtils.getCurrentUserId(), classId);
         return studentService.getStudentsByClassId(classId).stream()
                 .map(StudentDTO::from)
                 .toList();
