@@ -12,6 +12,7 @@ import { clearAllCache } from "../services/api";
 interface AuthContextValue {
   user: AuthUser | null;
   isAdmin: boolean;
+  isDemo: boolean;
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
 }
@@ -33,8 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserState(null);
   }, []);
 
+  const isDemo = user?.email?.endsWith("@demo.markbook.com") ?? false;
+
   return (
-    <AuthContext.Provider value={{ user, isAdmin: user?.role === "ADMIN", setUser, clearUser }}>
+    <AuthContext.Provider value={{ user, isAdmin: user?.role === "ADMIN", isDemo, setUser, clearUser }}>
       {children}
     </AuthContext.Provider>
   );

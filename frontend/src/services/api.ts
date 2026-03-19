@@ -88,6 +88,14 @@ export async function signup(name: string, email: string, password: string): Pro
   return handleResponse<AuthResponse>(res);
 }
 
+export async function startDemo(): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/demo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleResponse<AuthResponse>(res);
+}
+
 export async function validateResetToken(token: string): Promise<void> {
   const res = await fetch(`${API_BASE}/auth/validate-reset-token?token=${encodeURIComponent(token)}`);
   if (!res.ok) throw new Error("Invalid link.");

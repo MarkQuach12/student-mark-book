@@ -6,11 +6,15 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { login } from "../services/api";
+import { login, startDemo } from "../services/api";
 import { setToken } from "../utils/authStorage";
 import { validateEmail } from "../utils/formValidation";
 import { useAuth } from "../contexts/AuthContext";
 import AuthForm from "../components/AuthForm";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 
 export default function LoginPage() {
@@ -21,6 +25,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const successMessage = (location.state as { successMessage?: string } | null)?.successMessage ?? null;
 
@@ -51,6 +56,21 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemo = async () => {
+    setError(null);
+    setDemoLoading(true);
+    try {
+      const res = await startDemo();
+      setToken(res.token);
+      setUser({ id: res.id, name: res.name, email: res.email, role: res.role });
+      navigate("/", { replace: true });
+    } catch {
+      setError("Unable to start demo. Please try again.");
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <AuthForm
       title="Log in"
@@ -62,6 +82,19 @@ export default function LoginPage() {
       footerText="Don't have an account?"
       footerLinkLabel="Sign up"
       footerLinkTo="/signup"
+      belowCard={
+        <Box sx={{ mt: 2, textAlign: "center" }}>
+          <Divider sx={{ mb: 2 }}>or</Divider>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleDemo}
+            disabled={demoLoading || loading}
+          >
+            {demoLoading ? <CircularProgress size={24} color="inherit" /> : "Try Demo"}
+          </Button>
+        </Box>
+      }
     >
       {successMessage && (
         <Alert severity="success" sx={{ mb: 2 }}>

@@ -31,6 +31,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import QuizIcon from "@mui/icons-material/Quiz";
 import SchoolIcon from "@mui/icons-material/School";
+import Alert from "@mui/material/Alert";
 import WeeklyCalendar from "../components/calendar/WeeklyCalendar";
 import AddExamDialog from "../components/calendar/AddExamDialog";
 import AddExtraLessonDialog from "../components/calendar/AddExtraLessonDialog";
@@ -38,7 +39,7 @@ import { formatDateISO, getMonday, getWeekDates } from "../components/calendar/c
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDemo } = useAuth();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [exams, setExams] = useState<ApiExam[]>([]);
   const [allExams, setAllExams] = useState<ApiExam[]>([]);
@@ -228,6 +229,11 @@ const LandingPage = () => {
     <Box sx={{ pt: 12, pb: 4 }}>
       <Box sx={{ pb: 1 }}>
         <Container maxWidth="md">
+          {isDemo && (
+            <Alert severity="info" sx={{ mb: 1 }}>
+              You're exploring in demo mode. Sign up to create your own classes.
+            </Alert>
+          )}
           <Box sx={{ position: "relative", mb: 1 }}>
             <Box sx={{ textAlign: "center" }}>
               <Typography variant="h5" component="h1">

@@ -19,6 +19,7 @@ interface AuthFormProps {
   footerLinkLabel: string;
   footerLinkTo: string;
   children: ReactNode;
+  belowCard?: ReactNode;
 }
 
 export default function AuthForm({
@@ -32,6 +33,7 @@ export default function AuthForm({
   footerLinkLabel,
   footerLinkTo,
   children,
+  belowCard,
 }: AuthFormProps) {
   return (
     <Box
@@ -75,6 +77,7 @@ export default function AuthForm({
             </Typography>
           </Box>
         </Paper>
+        {belowCard}
       </Container>
     </Box>
   );

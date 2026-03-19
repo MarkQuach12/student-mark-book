@@ -19,6 +19,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final ConcurrentHashMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Bucket> signupBuckets = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Bucket> forgotPasswordBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> chatBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> demoBuckets = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -26,21 +28,24 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (!path.startsWith("/api/auth/")) {
-            filterChain.doFilter(request, response);
-            return;
+        String clientIp = getClientIp(request);
+        Bucket bucket = null;
+
+        if (path.startsWith("/api/auth/")) {
+            if (path.contains("/login")) {
+                bucket = loginBuckets.computeIfAbsent(clientIp, k -> createBucket(10, Duration.ofMinutes(1)));
+            } else if (path.contains("/signup")) {
+                bucket = signupBuckets.computeIfAbsent(clientIp, k -> createBucket(10, Duration.ofHours(1)));
+            } else if (path.contains("/forgot-password")) {
+                bucket = forgotPasswordBuckets.computeIfAbsent(clientIp, k -> createBucket(5, Duration.ofHours(1)));
+            } else if (path.contains("/demo")) {
+                bucket = demoBuckets.computeIfAbsent(clientIp, k -> createBucket(5, Duration.ofHours(1)));
+            }
+        } else if (path.startsWith("/api/chat")) {
+            bucket = chatBuckets.computeIfAbsent(clientIp, k -> createBucket(10, Duration.ofHours(1)));
         }
 
-        String clientIp = getClientIp(request);
-        Bucket bucket;
-
-        if (path.contains("/login")) {
-            bucket = loginBuckets.computeIfAbsent(clientIp, k -> createBucket(10, Duration.ofMinutes(1)));
-        } else if (path.contains("/signup")) {
-            bucket = signupBuckets.computeIfAbsent(clientIp, k -> createBucket(10, Duration.ofHours(1)));
-        } else if (path.contains("/forgot-password")) {
-            bucket = forgotPasswordBuckets.computeIfAbsent(clientIp, k -> createBucket(5, Duration.ofHours(1)));
-        } else {
+        if (bucket == null) {
             filterChain.doFilter(request, response);
             return;
         }

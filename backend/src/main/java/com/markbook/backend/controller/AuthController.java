@@ -6,6 +6,7 @@ import com.markbook.backend.dto.request.LoginRequest;
 import com.markbook.backend.dto.request.ResetPasswordRequest;
 import com.markbook.backend.dto.request.SignupRequest;
 import com.markbook.backend.service.AuthService;
+import com.markbook.backend.service.DemoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final DemoService demoService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, DemoService demoService) {
         this.authService = authService;
+        this.demoService = demoService;
     }
 
     @PostMapping("/signup")
@@ -28,6 +31,11 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@RequestBody @Valid LoginRequest body) {
         return authService.login(body.email(), body.password());
+    }
+
+    @PostMapping("/demo")
+    public AuthResponse demo() {
+        return demoService.getDemoSession();
     }
 
     @GetMapping("/validate-reset-token")
