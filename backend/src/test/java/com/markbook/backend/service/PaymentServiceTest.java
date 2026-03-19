@@ -1,6 +1,5 @@
 package com.markbook.backend.service;
 
-import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.Payment;
 import com.markbook.backend.model.Student;
 import com.markbook.backend.model.Term;
@@ -293,7 +292,6 @@ class PaymentServiceTest {
         void correctlyParsesValidDateRangeFormat() {
             Student student = buildStudent(STUDENT_ID);
             LocalDate today = LocalDate.now();
-            int year = today.getYear();
 
             // Use a known date range that encompasses today so it gets seeded
             Term term = buildTerm("term1", "Term 1");

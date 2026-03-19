@@ -1,7 +1,6 @@
 package com.markbook.backend.service;
 
 import com.markbook.backend.dto.TopicDTO;
-import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.model.ClassTopicVisibility;
 import com.markbook.backend.model.Topic;

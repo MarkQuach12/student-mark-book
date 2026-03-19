@@ -125,12 +125,6 @@ class ClassServiceTest {
         return student;
     }
 
-    private Homework buildHomework(UUID homeworkId, ClassEntity classEntity) {
-        Homework homework = new Homework();
-        homework.setId(homeworkId);
-        homework.setClassEntity(classEntity);
-        return homework;
-    }
 
     // -------------------------------------------------------
     // verifyClassAccess

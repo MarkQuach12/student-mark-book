@@ -1,7 +1,6 @@
 package com.markbook.backend.service;
 
 import com.markbook.backend.dto.ResourceDTO;
-import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.Resource;
 import com.markbook.backend.model.Topic;
 import com.markbook.backend.repository.ResourceRepository;

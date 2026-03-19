@@ -2,7 +2,6 @@ package com.markbook.backend.service;
 
 import com.markbook.backend.dto.ExtraLessonDTO;
 import com.markbook.backend.dto.request.CreateExtraLessonRequest;
-import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.ClassEntity;
 import com.markbook.backend.model.ExtraLesson;
 import com.markbook.backend.model.UserClassAssignment;
