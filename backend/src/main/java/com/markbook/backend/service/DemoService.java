@@ -74,29 +74,38 @@ public class DemoService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void ensureDemoAccount() {
-        var existingUser = userRepository.findById(DEMO_USER_ID);
-        if (existingUser.isPresent()) {
-            // Check if user actually has classes (data might be missing)
-            List<ClassEntity> classes = classRepository.findByUserId(DEMO_USER_ID);
-            if (!classes.isEmpty()) {
-                log.info("Demo account already exists with data, skipping creation");
+        try {
+            var existingUser = userRepository.findById(DEMO_USER_ID);
+            if (existingUser.isPresent()) {
+                // Check if user actually has classes (data might be missing)
+                List<ClassEntity> classes = classRepository.findByUserId(DEMO_USER_ID);
+                if (!classes.isEmpty()) {
+                    log.info("Demo account already exists with data, skipping creation");
+                    return;
+                }
+                // User exists but no data — rebuild
+                log.info("Demo account exists but has no data, building demo data...");
+                List<Term> terms = termRepository.findAllWithWeeks();
+                log.info("Found {} terms with weeks: {}", terms.size(),
+                        terms.stream().map(t -> t.getKey() + "(" + (t.getWeeks() != null ? t.getWeeks().size() : 0) + " weeks)").toList());
+                buildDemoData(existingUser.get());
+                log.info("Demo data rebuilt successfully");
                 return;
             }
-            // User exists but no data — rebuild
-            log.info("Demo account exists but has no data, building demo data...");
-            buildDemoData(existingUser.get());
-            log.info("Demo data rebuilt successfully");
-            return;
+
+            log.info("Creating shared demo account...");
+            User demoUser = new User(DEMO_USER_ID, "Demo User", DEMO_EMAIL);
+            demoUser.setRole("USER");
+            demoUser.setPasswordHash(null);
+            demoUser = userRepository.saveAndFlush(demoUser);
+
+            List<Term> terms = termRepository.findAllWithWeeks();
+            log.info("Found {} terms for new demo account", terms.size());
+            buildDemoData(demoUser);
+            log.info("Shared demo account created successfully");
+        } catch (Exception e) {
+            log.error("Failed to create demo account: {}", e.getMessage(), e);
         }
-
-        log.info("Creating shared demo account...");
-        User demoUser = new User(DEMO_USER_ID, "Demo User", DEMO_EMAIL);
-        demoUser.setRole("USER");
-        demoUser.setPasswordHash(null);
-        demoUser = userRepository.saveAndFlush(demoUser);
-
-        buildDemoData(demoUser);
-        log.info("Shared demo account created successfully");
     }
 
     /**
