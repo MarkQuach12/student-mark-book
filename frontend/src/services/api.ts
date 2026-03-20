@@ -96,6 +96,14 @@ export async function startDemo(): Promise<AuthResponse> {
   return handleResponse<AuthResponse>(res);
 }
 
+export async function startDemoAdmin(): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/demo-admin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleResponse<AuthResponse>(res);
+}
+
 export async function validateResetToken(token: string): Promise<void> {
   const res = await fetch(`${API_BASE}/auth/validate-reset-token?token=${encodeURIComponent(token)}`);
   if (!res.ok) throw new Error("Invalid link.");

@@ -22,6 +22,8 @@ public class DemoService {
     private static final Logger log = LoggerFactory.getLogger(DemoService.class);
     static final String DEMO_USER_ID = "demo-user";
     static final String DEMO_EMAIL = "demo@demo.markbook.com";
+    static final String DEMO_ADMIN_ID = "demo-admin";
+    static final String DEMO_ADMIN_EMAIL = "demo-admin@demo.markbook.com";
 
     private final UserRepository userRepository;
     private final ClassRepository classRepository;
@@ -106,6 +108,28 @@ public class DemoService {
         } catch (Exception e) {
             log.error("Failed to create demo account: {}", e.getMessage(), e);
         }
+
+        // Ensure demo admin account exists
+        try {
+            ensureDemoAdmin();
+        } catch (Exception e) {
+            log.error("Failed to create demo admin account: {}", e.getMessage(), e);
+        }
+    }
+
+    private void ensureDemoAdmin() {
+        var existingAdmin = userRepository.findById(DEMO_ADMIN_ID);
+        if (existingAdmin.isPresent()) {
+            log.info("Demo admin account already exists, skipping creation");
+            return;
+        }
+
+        log.info("Creating demo admin account...");
+        User demoAdmin = new User(DEMO_ADMIN_ID, "Demo Admin", DEMO_ADMIN_EMAIL);
+        demoAdmin.setRole("ADMIN");
+        demoAdmin.setPasswordHash(null);
+        userRepository.saveAndFlush(demoAdmin);
+        log.info("Demo admin account created successfully");
     }
 
     /**
@@ -114,6 +138,14 @@ public class DemoService {
     public AuthResponse getDemoSession() {
         String token = jwtUtil.generateToken(DEMO_USER_ID, "USER");
         return new AuthResponse(token, DEMO_USER_ID, "Demo User", DEMO_EMAIL, "USER");
+    }
+
+    /**
+     * Issue a JWT for the shared demo admin account. No DB writes needed.
+     */
+    public AuthResponse getDemoAdminSession() {
+        String token = jwtUtil.generateToken(DEMO_ADMIN_ID, "ADMIN");
+        return new AuthResponse(token, DEMO_ADMIN_ID, "Demo Admin", DEMO_ADMIN_EMAIL, "ADMIN");
     }
 
     private void buildDemoData(User demoUser) {

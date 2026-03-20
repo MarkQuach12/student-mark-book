@@ -6,7 +6,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { login, startDemo } from "../services/api";
+import { login, startDemo, startDemoAdmin } from "../services/api";
 import { setToken } from "../utils/authStorage";
 import { validateEmail } from "../utils/formValidation";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [demoAdminLoading, setDemoAdminLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const successMessage = (location.state as { successMessage?: string } | null)?.successMessage ?? null;
 
@@ -71,6 +72,21 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoAdmin = async () => {
+    setError(null);
+    setDemoAdminLoading(true);
+    try {
+      const res = await startDemoAdmin();
+      setToken(res.token);
+      setUser({ id: res.id, name: res.name, email: res.email, role: res.role });
+      navigate("/", { replace: true });
+    } catch {
+      setError("Unable to start admin demo. Please try again.");
+    } finally {
+      setDemoAdminLoading(false);
+    }
+  };
+
   return (
     <AuthForm
       title="Log in"
@@ -89,9 +105,18 @@ export default function LoginPage() {
             fullWidth
             variant="outlined"
             onClick={handleDemo}
-            disabled={demoLoading || loading}
+            disabled={demoLoading || demoAdminLoading || loading}
           >
-            {demoLoading ? <CircularProgress size={24} color="inherit" /> : "Try Demo"}
+            {demoLoading ? <CircularProgress size={24} color="inherit" /> : "Try Demo (User)"}
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleDemoAdmin}
+            disabled={demoLoading || demoAdminLoading || loading}
+            sx={{ mt: 1 }}
+          >
+            {demoAdminLoading ? <CircularProgress size={24} color="inherit" /> : "Try Demo (Admin)"}
           </Button>
         </Box>
       }

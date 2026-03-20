@@ -42,6 +42,11 @@ public class AuthController {
         return demoService.getDemoSession();
     }
 
+    @PostMapping("/demo-admin")
+    public AuthResponse demoAdmin() {
+        return demoService.getDemoAdminSession();
+    }
+
     @GetMapping("/validate-reset-token")
     public ResponseEntity<Void> validateResetToken(@RequestParam String token) {
         authService.validateResetToken(token);
