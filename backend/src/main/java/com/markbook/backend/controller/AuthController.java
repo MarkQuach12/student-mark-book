@@ -8,9 +8,11 @@ import com.markbook.backend.dto.request.SignupRequest;
 import com.markbook.backend.service.AuthService;
 import com.markbook.backend.service.DemoService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -25,11 +27,13 @@ public class AuthController {
 
     @PostMapping("/signup")
     public AuthResponse signup(@RequestBody @Valid SignupRequest body) {
+        log.info("[AuthController] POST /api/auth/signup email={}", body.email());
         return authService.signup(body.name(), body.email(), body.password());
     }
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody @Valid LoginRequest body) {
+        log.info("[AuthController] POST /api/auth/login email={}", body.email());
         return authService.login(body.email(), body.password());
     }
 

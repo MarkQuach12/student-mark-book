@@ -3,7 +3,7 @@ import type { AuthResponse } from "../types/auth";
 import type { Student, Homework, PaymentStatus } from "../pages/classPage/types";
 import type { TermPeriod } from "../pages/classPage/termData";
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 // ── Cache ────────────────────────────────────────────────────────────
 

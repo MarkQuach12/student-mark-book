@@ -63,15 +63,28 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(String email, String password) {
         String normalizedEmail = email.toLowerCase().trim();
+        log.info("[Auth] Login attempt for email={}", normalizedEmail);
+
         Optional<User> optUser = userRepository.findById(normalizedEmail);
 
-        if (optUser.isEmpty() || optUser.get().getPasswordHash() == null
-                || !passwordEncoder.matches(password, optUser.get().getPasswordHash())) {
+        if (optUser.isEmpty()) {
+            log.warn("[Auth] Login failed: no user found for email={}", normalizedEmail);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
         }
 
         User user = optUser.get();
+        if (user.getPasswordHash() == null) {
+            log.warn("[Auth] Login failed: user={} has no password hash (auto-created account?)", normalizedEmail);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
+        }
+
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            log.warn("[Auth] Login failed: incorrect password for email={}", normalizedEmail);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
+        }
+
         String token = jwtUtil.generateToken(user.getId(), user.getRole());
+        log.info("[Auth] Login successful for email={} role={}", normalizedEmail, user.getRole());
         return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), user.getRole());
     }
 
