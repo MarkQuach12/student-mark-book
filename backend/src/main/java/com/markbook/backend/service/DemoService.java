@@ -70,26 +70,43 @@ public class DemoService {
         this.jwtUtil = jwtUtil;
     }
 
-    /**
-     * On startup, ensure the shared demo account and its data exist.
-     */
+    private record ClassSpec(
+            String level,
+            String day,
+            LocalTime start,
+            LocalTime end,
+            List<String> studentNames
+    ) {}
+
+    private static final List<ClassSpec> CLASS_SPECS = List.of(
+            new ClassSpec("Year 3", "Monday", LocalTime.of(14, 0), LocalTime.of(15, 30),
+                    List.of("Mia Tran", "Lucas Vo", "Ava Patel", "Ethan Singh", "Isabella Mehta", "Mason Reddy")),
+            new ClassSpec("Year 5", "Monday", LocalTime.of(15, 30), LocalTime.of(17, 0),
+                    List.of("Alice Chen", "James Park", "Sarah Kim", "Daniel Lee", "Sophia Nguyen", "Jackson Choi")),
+            new ClassSpec("Year 6", "Tuesday", LocalTime.of(14, 0), LocalTime.of(15, 30),
+                    List.of("Charlotte Wong", "Henry Lin", "Amelia Cho", "Benjamin Yu", "Harper Sun", "Sebastian Ho")),
+            new ClassSpec("Year 7", "Tuesday", LocalTime.of(16, 0), LocalTime.of(17, 30),
+                    List.of("Ella Hwang", "Caleb Tran", "Grace Truong", "Owen Nguyen", "Lily Pham", "Wyatt Le")),
+            new ClassSpec("Year 8", "Wednesday", LocalTime.of(16, 0), LocalTime.of(17, 30),
+                    List.of("Emma Wang", "Liam Zhang", "Olivia Liu", "Noah Tan", "Aria Hsu", "Levi Yang")),
+            new ClassSpec("Year 9", "Thursday", LocalTime.of(16, 0), LocalTime.of(17, 30),
+                    List.of("Chloe Ng", "Ezra Pham", "Layla Hong", "Lincoln Bae", "Stella Ng", "Aiden Sim")),
+            new ClassSpec("Year 10", "Friday", LocalTime.of(16, 0), LocalTime.of(17, 30),
+                    List.of("Penelope Han", "Roman Quach", "Hazel Vu", "Jaxon Vu", "Aurora Doan", "Asher Mai"))
+    );
+
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void ensureDemoAccount() {
         try {
             var existingUser = userRepository.findById(DEMO_USER_ID);
             if (existingUser.isPresent()) {
-                // Check if user actually has classes (data might be missing)
                 List<ClassEntity> classes = classRepository.findByUserId(DEMO_USER_ID);
                 if (!classes.isEmpty()) {
                     log.info("Demo account already exists with data, skipping creation");
                     return;
                 }
-                // User exists but no data — rebuild
                 log.info("Demo account exists but has no data, building demo data...");
-                List<Term> terms = termRepository.findAllWithWeeks();
-                log.info("Found {} terms with weeks: {}", terms.size(),
-                        terms.stream().map(t -> t.getKey() + "(" + (t.getWeeks() != null ? t.getWeeks().size() : 0) + " weeks)").toList());
                 buildDemoData(existingUser.get());
                 log.info("Demo data rebuilt successfully");
                 return;
@@ -101,15 +118,12 @@ public class DemoService {
             demoUser.setPasswordHash(null);
             demoUser = userRepository.saveAndFlush(demoUser);
 
-            List<Term> terms = termRepository.findAllWithWeeks();
-            log.info("Found {} terms for new demo account", terms.size());
             buildDemoData(demoUser);
             log.info("Shared demo account created successfully");
         } catch (Exception e) {
             log.error("Failed to create demo account: {}", e.getMessage(), e);
         }
 
-        // Ensure demo admin account exists
         try {
             ensureDemoAdmin();
         } catch (Exception e) {
@@ -132,17 +146,11 @@ public class DemoService {
         log.info("Demo admin account created successfully");
     }
 
-    /**
-     * Issue a JWT for the shared demo account. No DB writes needed.
-     */
     public AuthResponse getDemoSession() {
         String token = jwtUtil.generateToken(DEMO_USER_ID, "USER");
         return new AuthResponse(token, DEMO_USER_ID, "Demo User", DEMO_EMAIL, "USER");
     }
 
-    /**
-     * Issue a JWT for the shared demo admin account. No DB writes needed.
-     */
     public AuthResponse getDemoAdminSession() {
         String token = jwtUtil.generateToken(DEMO_ADMIN_ID, "ADMIN");
         return new AuthResponse(token, DEMO_ADMIN_ID, "Demo Admin", DEMO_ADMIN_EMAIL, "ADMIN");
@@ -150,73 +158,70 @@ public class DemoService {
 
     private void buildDemoData(User demoUser) {
         List<Term> allTerms = termRepository.findAllWithWeeks();
+        log.info("Found {} terms for demo data build", allTerms.size());
 
-        ClassEntity year5 = new ClassEntity();
-        year5.setUser(demoUser);
-        year5.setClassLevel("Year 5");
-        year5.setDayOfWeek("Monday");
-        year5.setStartTime(LocalTime.of(15, 30));
-        year5.setEndTime(LocalTime.of(17, 0));
-        classRepository.save(year5);
+        for (ClassSpec spec : CLASS_SPECS) {
+            ClassEntity cls = new ClassEntity();
+            cls.setUser(demoUser);
+            cls.setClassLevel(spec.level());
+            cls.setDayOfWeek(spec.day());
+            cls.setStartTime(spec.start());
+            cls.setEndTime(spec.end());
+            cls = classRepository.save(cls);
 
-        ClassEntity year8 = new ClassEntity();
-        year8.setUser(demoUser);
-        year8.setClassLevel("Year 8");
-        year8.setDayOfWeek("Wednesday");
-        year8.setStartTime(LocalTime.of(16, 0));
-        year8.setEndTime(LocalTime.of(17, 30));
-        classRepository.save(year8);
+            List<Student> students = createStudentUsers(cls, spec.studentNames());
 
-        List<Student> year5Students = createStudents(year5, demoUser,
-                List.of("Alice Chen", "James Park", "Sarah Kim", "Daniel Lee"));
-        List<Student> year8Students = createStudents(year8, demoUser,
-                List.of("Emma Wang", "Liam Zhang", "Olivia Liu", "Noah Tan"));
+            List<Homework> homework = createHomeworkForClass(cls, allTerms);
+            createHomeworkCompletions(students, homework);
+            createAttendanceAndPayments(students, allTerms);
 
-        List<Homework> year5Homework = createHomeworkForClass(year5, allTerms);
-        List<Homework> year8Homework = createHomeworkForClass(year8, allTerms);
+            Exam exam = new Exam();
+            exam.setClassEntity(cls);
+            exam.setTitle(spec.level() + " Mid-Term Exam");
+            exam.setExamDate(LocalDate.now().plusDays(2 + CLASS_SPECS.indexOf(spec)));
+            examRepository.save(exam);
 
-        createHomeworkCompletions(year5Students, year5Homework);
-        createHomeworkCompletions(year8Students, year8Homework);
+            createTopicsAndResources(cls, spec.level());
 
-        createAttendanceAndPayments(year5Students, allTerms);
-        createAttendanceAndPayments(year8Students, allTerms);
+            UserClassAssignment demoAssignment = new UserClassAssignment();
+            demoAssignment.setUser(demoUser);
+            demoAssignment.setClassEntity(cls);
+            userClassAssignmentRepository.save(demoAssignment);
+        }
 
-        Exam year5Exam = new Exam();
-        year5Exam.setClassEntity(year5);
-        year5Exam.setTitle("Year 5 Mid-Term Exam");
-        year5Exam.setExamDate(LocalDate.now().plusDays(3));
-        examRepository.save(year5Exam);
-
-        Exam year8Exam = new Exam();
-        year8Exam.setClassEntity(year8);
-        year8Exam.setTitle("Year 8 Mid-Term Exam");
-        year8Exam.setExamDate(LocalDate.now().plusDays(2));
-        examRepository.save(year8Exam);
-
-        createTopicsAndResources(year5, "Year 5");
-        createTopicsAndResources(year8, "Year 8");
-
-        UserClassAssignment assignment1 = new UserClassAssignment();
-        assignment1.setUser(demoUser);
-        assignment1.setClassEntity(year5);
-        userClassAssignmentRepository.save(assignment1);
-
-        UserClassAssignment assignment2 = new UserClassAssignment();
-        assignment2.setUser(demoUser);
-        assignment2.setClassEntity(year8);
-        userClassAssignmentRepository.save(assignment2);
+        log.info("Seeded {} classes with student users", CLASS_SPECS.size());
     }
 
-    private List<Student> createStudents(ClassEntity classEntity, User user, List<String> names) {
+    private List<Student> createStudentUsers(ClassEntity classEntity, List<String> names) {
         List<Student> students = new ArrayList<>();
-        for (String name : names) {
+        for (String fullName : names) {
+            String slug = slug(fullName);
+            String userId = "demo-stu-" + slug;
+            String email = slug.replace('-', '.') + "@demo.markbook.com";
+
+            User studentUser = userRepository.findById(userId).orElseGet(() -> {
+                User u = new User(userId, fullName, email);
+                u.setRole("USER");
+                u.setPasswordHash(null);
+                return userRepository.save(u);
+            });
+
             Student student = new Student();
             student.setClassEntity(classEntity);
-            student.setUser(user);
-            student.setName(name);
+            student.setUser(studentUser);
+            student.setName(fullName);
             students.add(studentRepository.save(student));
+
+            UserClassAssignment uca = new UserClassAssignment();
+            uca.setUser(studentUser);
+            uca.setClassEntity(classEntity);
+            userClassAssignmentRepository.save(uca);
         }
         return students;
+    }
+
+    private static String slug(String name) {
+        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
     }
 
     private List<Homework> createHomeworkForClass(ClassEntity classEntity, List<Term> terms) {
@@ -269,7 +274,7 @@ public class DemoService {
                     Student student = students.get(s);
 
                     boolean present;
-                    switch (s) {
+                    switch (s % 4) {
                         case 0 -> present = (attIndex % 8) != 0;
                         case 1 -> present = (attIndex % 5) != 0;
                         case 2 -> present = (attIndex % 4) != 0;
@@ -313,7 +318,7 @@ public class DemoService {
             createResource(fractions, "Fractions Guide", "https://drive.google.com/file/d/demo-fractions-guide", "pdf", 0);
             createResource(fractions, "Fractions Exercises", "https://drive.google.com/file/d/demo-fractions-ex", "doc", 1);
             createVisibility(classEntity, fractions);
-        } else {
+        } else if (classLevel.equals("Year 8")) {
             Topic geometry = createTopic("[Demo] Geometry", classLevel, 0);
             createResource(geometry, "Geometry Fundamentals", "https://drive.google.com/file/d/demo-geometry-fund", "pdf", 0);
             createResource(geometry, "Shapes and Angles Worksheet", "https://drive.google.com/file/d/demo-shapes-ws", "doc", 1);
@@ -324,6 +329,11 @@ public class DemoService {
             createResource(equations, "Solving Linear Equations", "https://drive.google.com/file/d/demo-linear-eq", "pdf", 0);
             createResource(equations, "Equations Practice Set", "https://drive.google.com/file/d/demo-eq-practice", "doc", 1);
             createVisibility(classEntity, equations);
+        } else {
+            Topic core = createTopic("[Demo] " + classLevel + " Core", classLevel, 0);
+            createResource(core, classLevel + " Overview", "https://drive.google.com/file/d/demo-" + slug(classLevel) + "-overview", "pdf", 0);
+            createResource(core, classLevel + " Worksheet", "https://drive.google.com/file/d/demo-" + slug(classLevel) + "-ws", "doc", 1);
+            createVisibility(classEntity, core);
         }
     }
 
