@@ -43,6 +43,7 @@ public class AdminController {
     public List<UserDTO> listUsers() {
         if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         return userRepository.findAll().stream()
+                .filter(u -> !"ADMIN".equals(u.getRole()))
                 .map(UserDTO::from)
                 .toList();
     }
@@ -61,6 +62,9 @@ public class AdminController {
         if (!SecurityUtils.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if ("ADMIN".equals(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admins have access to all classes and cannot be assigned");
+        }
         ClassEntity classEntity = classRepository.findById(classId)
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
 

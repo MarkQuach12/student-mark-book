@@ -8,12 +8,9 @@ import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import Snackbar from "@mui/material/Snackbar";
 import TextField from "@mui/material/TextField";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { useAuth } from "../contexts/AuthContext";
-import { useThemeMode, type ThemeMode } from "../contexts/ThemeContext";
 import { getInitials } from "../utils/stringUtils";
 import { updateUserName, changePassword, fetchClasses } from "../services/api";
 import type { ClassData } from "./classPage/types";
@@ -47,7 +44,6 @@ function SectionTitle({
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
-  const { mode, setMode } = useThemeMode();
 
   const [name, setName] = useState("");
   const [nameSaving, setNameSaving] = useState(false);
@@ -138,7 +134,7 @@ export default function SettingsPage() {
         Settings
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 8 }}>
-        Manage your account, appearance, and class preferences.
+        Manage your account and class preferences.
       </Typography>
 
       <Card sx={{ p: 5, mb: 4 }}>
@@ -221,25 +217,6 @@ export default function SettingsPage() {
             Update password
           </Button>
         </Box>
-      </Card>
-
-      <Card sx={{ p: 5, mb: 4 }}>
-        <SectionTitle
-          title="Appearance"
-          description="Choose how the app looks. System follows your device setting."
-        />
-        <ToggleButtonGroup
-          value={mode}
-          exclusive
-          size="small"
-          onChange={(_, v: ThemeMode | null) => {
-            if (v) setMode(v);
-          }}
-        >
-          <ToggleButton value="light">Light</ToggleButton>
-          <ToggleButton value="dark">Dark</ToggleButton>
-          <ToggleButton value="system">System</ToggleButton>
-        </ToggleButtonGroup>
       </Card>
 
       {classes.length > 0 && (

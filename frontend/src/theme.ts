@@ -218,6 +218,10 @@ export function buildTheme(mode: Mode): Theme {
           root: {
             backgroundColor: "rgba(0, 0, 0, 0.4)",
             backdropFilter: "blur(4px)",
+            "&.MuiBackdrop-invisible": {
+              backgroundColor: "transparent",
+              backdropFilter: "none",
+            },
           },
         },
       },

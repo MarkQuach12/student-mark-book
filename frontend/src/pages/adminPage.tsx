@@ -38,9 +38,8 @@ export default function AdminPage() {
   const loadData = useCallback(async () => {
     try {
       const [users, classes] = await Promise.all([fetchAllUsers(), fetchClasses()]);
-      const nonAdmin = users.filter((u) => u.id !== "admin@markbook.com");
       const withClasses = await Promise.all(
-        nonAdmin.map(async (user) => {
+        users.map(async (user) => {
           const userClasses = await fetchUserClasses(user.id);
           return { user, classes: userClasses };
         })
