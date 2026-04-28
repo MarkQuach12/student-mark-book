@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: markbook-postgres
+    environment:
+      POSTGRES_USER: markbook
+      POSTGRES_PASSWORD: markbook
+      POSTGRES_DB: markbook
+    ports:
+      - "5433:5432"
+    volumes:
+      - markbook-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U markbook -d markbook"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  markbook-pgdata:
