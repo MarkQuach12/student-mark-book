@@ -1,10 +1,13 @@
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import type { ApiExtraLesson } from "../../services/api";
 import { parseTime, formatMinutes } from "./calendarUtils";
+import { useAuth } from "../../contexts/AuthContext";
+import { getColorForClass } from "../../utils/classColors";
 
 interface Props {
   extraLesson: ApiExtraLesson;
@@ -14,8 +17,24 @@ interface Props {
   onDelete?: (id: string) => void;
 }
 
-const CalendarExtraLessonBlock = ({ extraLesson, startHour, pixelsPerHour, isAdmin, onDelete }: Props) => {
+function hexToRgba(hex: string, alpha: number): string {
+  const m = hex.replace("#", "");
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const CalendarExtraLessonBlock = ({
+  extraLesson,
+  startHour,
+  pixelsPerHour,
+  isAdmin,
+  onDelete,
+}: Props) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const color = getColorForClass(user?.email ?? "", extraLesson.classId);
 
   const startMinutes = parseTime(extraLesson.startTime);
   const endMinutes = parseTime(extraLesson.endTime);
@@ -32,51 +51,72 @@ const CalendarExtraLessonBlock = ({ extraLesson, startHour, pixelsPerHour, isAdm
         height,
         left: 4,
         right: 4,
-        backgroundColor: "rgba(156, 39, 176, 0.15)",
-        border: "2px dashed",
-        borderColor: "#9C27B0",
-        color: "#6A1B9A",
+        bgcolor: (t) =>
+          t.palette.mode === "dark"
+            ? hexToRgba(color.main, 0.10)
+            : hexToRgba(color.main, 0.06),
+        border: `1px dashed ${color.main}`,
+        borderLeft: `3px dashed ${color.main}`,
+        color: "text.primary",
         borderRadius: 1,
-        px: 1,
-        py: 0.5,
+        px: 1.5,
+        py: 0.75,
         cursor: "pointer",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        "&:hover": { backgroundColor: "rgba(156, 39, 176, 0.25)", boxShadow: 2 },
-        transition: "background-color 0.2s, box-shadow 0.2s",
+        transition: "background-color 150ms",
+        "&:hover": {
+          bgcolor: (t) =>
+            t.palette.mode === "dark"
+              ? hexToRgba(color.main, 0.18)
+              : hexToRgba(color.main, 0.12),
+        },
       }}
     >
       {isAdmin && onDelete && (
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(extraLesson.id);
-          }}
-          sx={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            p: 0.25,
-            color: "#6A1B9A",
-            "&:hover": { color: "#4A148C" },
-          }}
-        >
-          <CloseIcon sx={{ fontSize: 14 }} />
-        </IconButton>
+        <Tooltip title="Delete extra lesson">
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(extraLesson.id);
+            }}
+            sx={{
+              position: "absolute",
+              top: 2,
+              right: 2,
+              p: 0.25,
+              color: "text.secondary",
+              "&:hover": { color: "text.primary" },
+            }}
+          >
+            <CloseIcon sx={{ fontSize: 12 }} />
+          </IconButton>
+        </Tooltip>
       )}
       <Typography
         variant="body2"
-        sx={{ fontWeight: 700, lineHeight: 1.3, fontSize: "0.8rem" }}
+        sx={{ fontWeight: 600, lineHeight: 1.25, fontSize: "0.75rem", pr: 3 }}
       >
         {extraLesson.title}
       </Typography>
-      <Typography variant="caption" sx={{ opacity: 0.85, fontSize: "0.65rem" }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontSize: "0.6875rem" }}
+      >
         {extraLesson.classLevel}
       </Typography>
-      <Typography variant="caption" sx={{ opacity: 0.8, fontSize: "0.65rem" }}>
-        {formatMinutes(startMinutes)}&ndash;{formatMinutes(endMinutes)}
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          fontSize: "0.6875rem",
+          fontFamily: "'JetBrains Mono', monospace",
+        }}
+      >
+        {formatMinutes(startMinutes)}–{formatMinutes(endMinutes)}
       </Typography>
     </Box>
   );

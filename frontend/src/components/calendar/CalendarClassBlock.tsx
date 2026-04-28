@@ -12,7 +12,19 @@ interface Props {
   pixelsPerHour: number;
 }
 
-const CalendarClassBlock = ({ classData, startHour, pixelsPerHour }: Props) => {
+function hexToRgba(hex: string, alpha: number): string {
+  const m = hex.replace("#", "");
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const CalendarClassBlock = ({
+  classData,
+  startHour,
+  pixelsPerHour,
+}: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const color = getColorForClass(user?.email ?? "", classData.id);
@@ -32,31 +44,54 @@ const CalendarClassBlock = ({ classData, startHour, pixelsPerHour }: Props) => {
         height,
         left: 4,
         right: 4,
-        backgroundColor: color.main,
-        color: "#fff",
+        backgroundColor: (t) =>
+          t.palette.mode === "dark"
+            ? hexToRgba(color.main, 0.18)
+            : hexToRgba(color.main, 0.10),
+        borderLeft: `3px solid ${color.main}`,
+        borderTop: `1px solid ${hexToRgba(color.main, 0.25)}`,
+        borderRight: `1px solid ${hexToRgba(color.main, 0.25)}`,
+        borderBottom: `1px solid ${hexToRgba(color.main, 0.25)}`,
+        color: "text.primary",
         borderRadius: 1,
-        px: 1,
-        py: 0.5,
+        px: 1.5,
+        py: 0.75,
         cursor: "pointer",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        "&:hover": { backgroundColor: color.hover, boxShadow: 2 },
-        transition: "background-color 0.2s, box-shadow 0.2s",
+        transition: "background-color 150ms",
+        "&:hover": {
+          backgroundColor: (t) =>
+            t.palette.mode === "dark"
+              ? hexToRgba(color.main, 0.28)
+              : hexToRgba(color.main, 0.18),
+        },
       }}
     >
       <Typography
         variant="body2"
-        sx={{ fontWeight: 700, lineHeight: 1.3, fontSize: "0.8rem" }}
+        sx={{ fontWeight: 600, lineHeight: 1.25, fontSize: "0.75rem" }}
       >
         {classData.classLevel}
       </Typography>
       {classData.label && (
-        <Typography variant="caption" sx={{ opacity: 0.85, fontSize: "0.65rem", lineHeight: 1.2 }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ fontSize: "0.6875rem", lineHeight: 1.2 }}
+        >
           {classData.label}
         </Typography>
       )}
-      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: "0.7rem" }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          fontSize: "0.6875rem",
+          fontFamily: "'JetBrains Mono', monospace",
+        }}
+      >
         {formatMinutes(startMinutes)}–{formatMinutes(endMinutes)}
       </Typography>
     </Box>

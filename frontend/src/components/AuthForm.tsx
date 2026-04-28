@@ -4,9 +4,8 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
-import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import AuthLayout from "./AuthLayout";
 
 interface AuthFormProps {
   title: string;
@@ -36,49 +35,54 @@ export default function AuthForm({
   belowCard,
 }: AuthFormProps) {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        pt: 8,
-        pb: 2,
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "center",
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 3 }}>
-          <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
-            {title}
-          </Typography>
-          <Box component="form" onSubmit={onSubmit} noValidate>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }} onClose={onErrorClose}>
-                {error}
-              </Alert>
+    <AuthLayout>
+      <Typography component="h1" variant="h1" sx={{ mb: 6 }}>
+        {title}
+      </Typography>
+      <Box component="form" onSubmit={onSubmit} noValidate>
+        {error && (
+          <Alert
+            severity="error"
+            variant="outlined"
+            sx={{ mb: 4 }}
+            onClose={onErrorClose}
+          >
+            {error}
+          </Alert>
+        )}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {children}
+        </Box>
+        {submitLabel && (
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 6, py: 2 }}
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              submitLabel
             )}
-            {children}
-            {submitLabel && (
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : submitLabel}
-              </Button>
-            )}
-            <Typography variant="body2" sx={{ textAlign: "center" }}>
-              {footerText}{" "}
-              <Link to={footerLinkTo} style={{ color: "inherit", fontWeight: 600 }}>
-                {footerLinkLabel}
-              </Link>
-            </Typography>
-          </Box>
-        </Paper>
-        {belowCard}
-      </Container>
-    </Box>
+          </Button>
+        )}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textAlign: "center", mt: 4 }}
+        >
+          {footerText}{" "}
+          <Link
+            to={footerLinkTo}
+            style={{ color: "inherit", fontWeight: 500, textDecoration: "underline" }}
+          >
+            {footerLinkLabel}
+          </Link>
+        </Typography>
+      </Box>
+      {belowCard}
+    </AuthLayout>
   );
 }

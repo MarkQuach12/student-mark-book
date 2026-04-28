@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
+import Skeleton from "@mui/material/Skeleton";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -302,19 +301,22 @@ function ClassPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
-        <CircularProgress />
+      <Container maxWidth="lg" sx={{ pt: 6, pb: 8 }}>
+        <Skeleton variant="text" width={280} height={40} sx={{ mb: 1 }} />
+        <Skeleton variant="text" width={200} sx={{ mb: 6 }} />
+        <Skeleton variant="rounded" height={36} width={240} sx={{ mb: 4 }} />
+        <Skeleton variant="rounded" height={400} />
       </Container>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
-        <Typography variant="h5" gutterBottom>
-          Error
+      <Container maxWidth="lg" sx={{ pt: 12, pb: 8, textAlign: "center" }}>
+        <Typography variant="h2" sx={{ mb: 1 }}>
+          Something went wrong
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 6 }}>
           {error}
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
@@ -326,11 +328,11 @@ function ClassPage() {
 
   if (!classInfo || !currentTerm) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
-        <Typography variant="h5" gutterBottom>
+      <Container maxWidth="lg" sx={{ pt: 12, pb: 8, textAlign: "center" }}>
+        <Typography variant="h2" sx={{ mb: 1 }}>
           Class not found
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 6 }}>
           The class you are looking for does not exist or has been removed.
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
@@ -344,7 +346,7 @@ function ClassPage() {
   const weekHeading = `${currentWeekInfo.label} (${currentWeekInfo.dateRange})`;
 
   return (
-    <Box sx={{ px: 3, py: 4, pb: 6 }}>
+    <Container maxWidth="lg" sx={{ pt: 6, pb: 8 }}>
       <ClassHeader
         className={classInfo.name}
         label={classInfo.label}
@@ -353,7 +355,11 @@ function ClassPage() {
         onDeleteClass={() => setDeleteClassOpen(true)}
         isAdmin={isAdmin}
       />
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 2 }}>
+      <Tabs
+        value={activeTab}
+        onChange={(_, v) => setActiveTab(v)}
+        sx={{ mb: 6, borderBottom: 1, borderColor: "divider" }}
+      >
         <Tab label="Marks" />
         <Tab label="Resources" />
       </Tabs>
@@ -456,7 +462,7 @@ function ClassPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 }
 

@@ -4,15 +4,16 @@ import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
-import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
-import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import CalendarViewWeekIcon from "@mui/icons-material/CalendarViewWeek";
+import Skeleton from "@mui/material/Skeleton";
+import Tooltip from "@mui/material/Tooltip";
+import ViewModuleIcon from "@mui/icons-material/ViewModuleOutlined";
+import CalendarViewWeekIcon from "@mui/icons-material/CalendarViewWeekOutlined";
 import { useNavigate } from "react-router-dom";
 import { fetchClasses, fetchExams, fetchExtraLessons, deleteExam as apiDeleteExam, deleteExtraLesson as apiDeleteExtraLesson } from "../services/api";
 import type { ClassData } from "./classPage/types";
@@ -21,17 +22,16 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import AddIcon from "@mui/icons-material/Add";
-import QuizIcon from "@mui/icons-material/Quiz";
-import SchoolIcon from "@mui/icons-material/School";
-import Alert from "@mui/material/Alert";
+import QuizIcon from "@mui/icons-material/QuizOutlined";
+import SchoolIcon from "@mui/icons-material/SchoolOutlined";
+import StatusDot from "../components/StatusDot";
 import WeeklyCalendar from "../components/calendar/WeeklyCalendar";
 import AddExamDialog from "../components/calendar/AddExamDialog";
 import AddExtraLessonDialog from "../components/calendar/AddExtraLessonDialog";
@@ -219,52 +219,118 @@ const LandingPage = () => {
 
   if (loading) {
     return (
-      <Box sx={{ pt: 12, pb: 4, textAlign: "center" }}>
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="lg" sx={{ pt: 6, pb: 8 }}>
+        <Skeleton variant="text" width={240} sx={{ mb: 1 }} />
+        <Skeleton variant="text" width={360} sx={{ mb: 8 }} />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "1fr 1fr",
+              md: "1fr 1fr 1fr",
+            },
+            gap: 4,
+          }}
+        >
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} variant="rounded" height={100} />
+          ))}
+        </Box>
+      </Container>
     );
   }
 
   return (
-    <Box sx={{ pt: 12, pb: 4 }}>
-      <Box sx={{ pb: 1 }}>
-        <Container maxWidth="md">
+    <Box sx={{ pt: 6, pb: 8 }}>
+      <Box sx={{ pb: 4 }}>
+        <Container maxWidth="lg">
           {isDemo && (
-            <Alert severity="info" sx={{ mb: 1 }}>
-              You're exploring in demo mode. Sign up to create your own classes.
-            </Alert>
-          )}
-          <Box sx={{ position: "relative", mb: 1 }}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h5" component="h1">
-                MQ Student Mark Book
-              </Typography>
+            <Box
+              sx={{
+                mb: 6,
+                px: 4,
+                py: 3,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1.5,
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  bgcolor: "info.main",
+                  flexShrink: 0,
+                }}
+              />
               <Typography variant="body2" color="text.secondary">
-                Manage your classes and student marks in one place.
+                You're exploring in demo mode. Sign up to create your own classes.
               </Typography>
             </Box>
-            <Box sx={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 1 }}>
+          )}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: 4,
+              flexWrap: "wrap",
+            }}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h1" component="h1" sx={{ mb: 1 }}>
+                Home
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Your classes, calendar, and upcoming exams.
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
               {viewMode === "calendar" && isAdmin && (
                 <>
-                  <IconButton
-                    size="small"
-                    color="primary"
-                    onClick={(e) => setAddMenuAnchor(e.currentTarget)}
-                    sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}
-                  >
-                    <AddIcon />
-                  </IconButton>
+                  <Tooltip title="Add">
+                    <IconButton
+                      size="small"
+                      onClick={(e) => setAddMenuAnchor(e.currentTarget)}
+                      sx={{
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 1.5,
+                      }}
+                    >
+                      <AddIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Tooltip>
                   <Menu
                     anchorEl={addMenuAnchor}
                     open={Boolean(addMenuAnchor)}
                     onClose={() => setAddMenuAnchor(null)}
                   >
-                    <MenuItem onClick={() => { setAddMenuAnchor(null); setAddExamOpen(true); }}>
-                      <ListItemIcon><QuizIcon fontSize="small" /></ListItemIcon>
+                    <MenuItem
+                      onClick={() => {
+                        setAddMenuAnchor(null);
+                        setAddExamOpen(true);
+                      }}
+                    >
+                      <ListItemIcon>
+                        <QuizIcon fontSize="small" />
+                      </ListItemIcon>
                       <ListItemText>Add Exam</ListItemText>
                     </MenuItem>
-                    <MenuItem onClick={() => { setAddMenuAnchor(null); setAddExtraLessonOpen(true); }}>
-                      <ListItemIcon><SchoolIcon fontSize="small" /></ListItemIcon>
+                    <MenuItem
+                      onClick={() => {
+                        setAddMenuAnchor(null);
+                        setAddExtraLessonOpen(true);
+                      }}
+                    >
+                      <ListItemIcon>
+                        <SchoolIcon fontSize="small" />
+                      </ListItemIcon>
                       <ListItemText>Add Extra Lesson</ListItemText>
                     </MenuItem>
                   </Menu>
@@ -282,10 +348,10 @@ const LandingPage = () => {
                 size="small"
               >
                 <ToggleButton value="grid" aria-label="grid view">
-                  <ViewModuleIcon />
+                  <ViewModuleIcon sx={{ fontSize: 18 }} />
                 </ToggleButton>
                 <ToggleButton value="calendar" aria-label="calendar view">
-                  <CalendarViewWeekIcon />
+                  <CalendarViewWeekIcon sx={{ fontSize: 18 }} />
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
@@ -294,41 +360,62 @@ const LandingPage = () => {
       </Box>
 
       {viewMode === "grid" ? (
-        <Container maxWidth="md">
+        <Container maxWidth="lg">
           {classes.length === 0 && !isAdmin && (
-            <Typography color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-              No classes assigned yet. Contact your admin to get access.
-            </Typography>
+            <Box
+              sx={{
+                py: 12,
+                px: 4,
+                textAlign: "center",
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 2,
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                No classes assigned yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Contact your admin to get access to a class.
+              </Typography>
+            </Box>
           )}
-          <Grid container spacing={2}>
+          <Grid container spacing={4}>
             {classes.map((cls) => (
-              <Grid size={{ xs: 12, sm: 4, md: 4 }} key={cls.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cls.id}>
                 <Card
-                  variant="outlined"
                   sx={{
-                    height: 120,
-                    transition: "box-shadow 0.2s, border-color 0.2s",
-                    "&:hover": {
-                      borderColor: "primary.main",
-                      boxShadow: 2,
-                    },
+                    height: 110,
+                    transition: "border-color 150ms",
+                    "&:hover": { borderColor: "text.disabled" },
                   }}
                 >
                   <CardActionArea
                     onClick={() => navigate(`/classOverview/${cls.id}`)}
-                    sx={{ height: "100%" }}
+                    sx={{ height: "100%", p: 4 }}
                   >
-                    <CardContent sx={{ textAlign: "center" }}>
-                      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+                    <CardContent sx={{ p: 0 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: 600, mb: 0.5 }}
+                      >
                         {cls.classLevel}
                       </Typography>
                       {cls.label && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5, fontStyle: "italic" }}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: "block", mb: 0.5 }}
+                        >
                           {cls.label}
                         </Typography>
                       )}
-                      <Typography variant="body2" color="text.secondary">
-                        {cls.dayOfWeek} {cls.startTime}–{cls.endTime}
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontFamily: "'JetBrains Mono', monospace" }}
+                      >
+                        {cls.dayOfWeek} · {cls.startTime}–{cls.endTime}
                       </Typography>
                     </CardContent>
                   </CardActionArea>
@@ -338,8 +425,15 @@ const LandingPage = () => {
           </Grid>
         </Container>
       ) : (
-        <Box sx={{ display: "flex", px: 3, gap: 3 }}>
-          {/* Calendar — takes remaining space */}
+        <Box
+          sx={{
+            display: "flex",
+            px: { xs: 4, md: 6 },
+            gap: 6,
+            flexDirection: { xs: "column", lg: "row" },
+          }}
+        >
+          {/* Calendar */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <WeeklyCalendar
               classes={classes}
@@ -355,8 +449,12 @@ const LandingPage = () => {
           </Box>
 
           {/* Upcoming Exams sidebar */}
-          <Box sx={{ width: 260, flexShrink: 0 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+          <Box sx={{ width: { xs: "100%", lg: 280 }, flexShrink: 0 }}>
+            <Typography
+              variant="overline"
+              color="text.disabled"
+              sx={{ display: "block", mb: 3 }}
+            >
               Upcoming Exams
             </Typography>
             {upcomingExams.length === 0 ? (
@@ -364,37 +462,70 @@ const LandingPage = () => {
                 No upcoming exams.
               </Typography>
             ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {upcomingExams.map((exam) => {
                   const countdown = daysUntil(exam.examDate);
-                  const isUrgent = countdown === "Today" || countdown === "Tomorrow";
+                  const isUrgent =
+                    countdown === "Today" || countdown === "Tomorrow";
                   return (
-                    <Card key={exam.id} variant="outlined" sx={{ px: 1.5, py: 1 }}>
-                      <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+                    <Card key={exam.id} sx={{ px: 3, py: 2.5 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          justifyContent: "space-between",
+                          gap: 2,
+                        }}
+                      >
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography
+                            variant="body1"
+                            sx={{ fontWeight: 500, lineHeight: 1.3, mb: 0.5 }}
+                          >
                             {exam.title}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: "block", mb: 1 }}
+                          >
                             {exam.classLevel}
                           </Typography>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.25 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              {new Date(exam.examDate + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2,
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              {new Date(
+                                exam.examDate + "T00:00:00",
+                              ).toLocaleDateString("en-AU", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                              })}
                             </Typography>
-                            <Chip
+                            <StatusDot
+                              kind={isUrgent ? "warning" : "neutral"}
                               label={countdown}
-                              size="small"
-                              color={isUrgent ? "warning" : "default"}
-                              variant={isUrgent ? "filled" : "outlined"}
-                              sx={{ height: 18, fontSize: "0.65rem" }}
                             />
                           </Box>
                         </Box>
                         {isAdmin && (
-                          <IconButton size="small" color="error" onClick={() => setPendingDeleteExam(exam)} sx={{ ml: 0.5, mt: -0.5 }}>
-                            <DeleteIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
+                          <Tooltip title="Delete exam">
+                            <IconButton
+                              size="small"
+                              onClick={() => setPendingDeleteExam(exam)}
+                            >
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Tooltip>
                         )}
                       </Box>
                     </Card>

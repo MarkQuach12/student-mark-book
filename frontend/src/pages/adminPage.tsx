@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import Paper from "@mui/material/Paper";
-import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
@@ -83,90 +83,133 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <Box sx={{ pt: 12, textAlign: "center" }}>
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="lg" sx={{ pt: 6, pb: 8 }}>
+        <Skeleton variant="text" width={240} height={40} sx={{ mb: 1 }} />
+        <Skeleton variant="text" width={360} sx={{ mb: 6 }} />
+        <Skeleton variant="rounded" height={140} sx={{ mb: 4 }} />
+        <Skeleton variant="rounded" height={140} />
+      </Container>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ pt: 12, pb: 4 }}>
-      <Typography variant="h5" gutterBottom>
-        Admin - User Management
+    <Container maxWidth="lg" sx={{ pt: 6, pb: 8 }}>
+      <Typography variant="h1" component="h1" sx={{ mb: 1 }}>
+        Admin
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 8 }}>
         Assign classes to users so they can access them.
       </Typography>
 
       {usersWithClasses.length === 0 ? (
-        <Typography color="text.secondary">No registered users yet.</Typography>
+        <Box
+          sx={{
+            py: 12,
+            textAlign: "center",
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
+            No registered users yet
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Users will appear here as they sign up.
+          </Typography>
+        </Box>
       ) : (
-        usersWithClasses.map(({ user, classes: userClasses }) => {
-          const unassignedClasses = allClasses.filter(
-            (c) => !userClasses.some((uc) => uc.id === c.id)
-          );
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {usersWithClasses.map(({ user, classes: userClasses }) => {
+            const unassignedClasses = allClasses.filter(
+              (c) => !userClasses.some((uc) => uc.id === c.id),
+            );
 
-          return (
-            <Paper key={user.id} sx={{ p: 3, mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{user.name}</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {user.email}
-              </Typography>
-
-              <Divider sx={{ mb: 2 }} />
-
-              <Typography variant="subtitle2" gutterBottom>
-                Assigned Classes
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-                {userClasses.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    No classes assigned.
-                  </Typography>
-                ) : (
-                  userClasses.map((cls) => (
-                    <Chip
-                      key={cls.id}
-                      label={`${cls.classLevel} - ${cls.dayOfWeek}`}
-                      onDelete={() => handleUnassign(user.id, cls.id)}
-                      color="primary"
-                      variant="outlined"
-                    />
-                  ))
-                )}
-              </Box>
-
-              {unassignedClasses.length > 0 && (
-                <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                  <FormControl size="small" sx={{ minWidth: 220 }}>
-                    <InputLabel>Add class</InputLabel>
-                    <Select
-                      label="Add class"
-                      value={selectedClass[user.id] ?? ""}
-                      onChange={(e) =>
-                        setSelectedClass((prev) => ({ ...prev, [user.id]: e.target.value }))
-                      }
-                    >
-                      {unassignedClasses.map((cls) => (
-                        <MenuItem key={cls.id} value={cls.id}>
-                          {cls.classLevel} - {cls.dayOfWeek} {cls.startTime}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    disabled={!selectedClass[user.id]}
-                    onClick={() => handleAssign(user.id)}
+            return (
+              <Card key={user.id} sx={{ p: 5 }}>
+                <Box sx={{ mb: 4 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 600, mb: 0.5 }}
                   >
-                    Assign
-                  </Button>
+                    {user.name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {user.email}
+                  </Typography>
                 </Box>
-              )}
-            </Paper>
-          );
-        })
+
+                <Divider sx={{ mb: 4 }} />
+
+                <Typography variant="overline" color="text.disabled" sx={{ display: "block", mb: 2 }}>
+                  Assigned Classes
+                </Typography>
+                <Box
+                  sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 4 }}
+                >
+                  {userClasses.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      No classes assigned.
+                    </Typography>
+                  ) : (
+                    userClasses.map((cls) => (
+                      <Chip
+                        key={cls.id}
+                        label={`${cls.classLevel} · ${cls.dayOfWeek}`}
+                        onDelete={() => handleUnassign(user.id, cls.id)}
+                        variant="outlined"
+                        size="small"
+                      />
+                    ))
+                  )}
+                </Box>
+
+                {unassignedClasses.length > 0 && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 2,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <FormControl size="small" sx={{ minWidth: 240 }}>
+                      <InputLabel>Add class</InputLabel>
+                      <Select
+                        label="Add class"
+                        value={selectedClass[user.id] ?? ""}
+                        onChange={(e) =>
+                          setSelectedClass((prev) => ({
+                            ...prev,
+                            [user.id]: e.target.value,
+                          }))
+                        }
+                      >
+                        {unassignedClasses.map((cls) => (
+                          <MenuItem key={cls.id} value={cls.id}>
+                            {cls.classLevel} · {cls.dayOfWeek} {cls.startTime}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      disabled={!selectedClass[user.id]}
+                      onClick={() => handleAssign(user.id)}
+                    >
+                      Assign
+                    </Button>
+                  </Box>
+                )}
+              </Card>
+            );
+          })}
+        </Box>
       )}
 
       <Snackbar
@@ -175,7 +218,11 @@ export default function AdminPage() {
         onClose={() => setToast(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert onClose={() => setToast(null)} severity={toast?.type ?? "success"} variant="filled">
+        <Alert
+          onClose={() => setToast(null)}
+          severity={toast?.type ?? "success"}
+          variant="filled"
+        >
           {toast?.message ?? ""}
         </Alert>
       </Snackbar>

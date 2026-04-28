@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
 import IconButton from "@mui/material/IconButton";
-import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -9,7 +9,8 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import type { Homework, PaymentStatus, Student } from "../pages/classPage/types";
 import StudentRow from "./StudentRow";
 
@@ -24,7 +25,11 @@ interface WeekContentProps {
   completions: Record<string, boolean>;
   onAttendanceChange: (studentId: string, inClass: boolean) => void;
   onPaymentChange: (studentId: string, status: PaymentStatus) => void;
-  onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
+  onCompletionChange: (
+    studentId: string,
+    homeworkId: string,
+    completed: boolean,
+  ) => void;
   onAddHomework: () => void;
   onDeleteHomework: (hwId: string) => void;
   isAdmin?: boolean;
@@ -49,45 +54,90 @@ export default function WeekContent({
   const hasHomework = homeworkForWeek.length > 0;
   return (
     <Box>
-      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-        {weekHeading} – Homework
-      </Typography>
-      <Paper variant="outlined" sx={{ overflow: "auto" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Typography variant="h4">{weekHeading}</Typography>
+        {isAdmin && (
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+            onClick={onAddHomework}
+          >
+            Add homework
+          </Button>
+        )}
+      </Box>
+      <Card sx={{ overflow: "auto", p: 0 }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell
                 align="center"
-                sx={{ pl: 2, pr: 1, py: 1, fontWeight: 600, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}
+                sx={{
+                  pl: 2,
+                  pr: 1,
+                  py: 1,
+                  width: hasHomework ? "1px" : undefined,
+                  whiteSpace: "nowrap",
+                }}
               >
                 In class
               </TableCell>
               <TableCell
                 align="center"
-                sx={{ fontWeight: 600, pl: 1, pr: 2, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}
+                sx={{
+                  pl: 1,
+                  pr: 2,
+                  width: hasHomework ? "1px" : undefined,
+                  whiteSpace: "nowrap",
+                }}
               >
                 Student
               </TableCell>
               <TableCell
                 align="center"
-                sx={{ fontWeight: 600, pl: 1, pr: 2, width: hasHomework ? "1px" : undefined, whiteSpace: "nowrap" }}
+                sx={{
+                  pl: 1,
+                  pr: 2,
+                  width: hasHomework ? "1px" : undefined,
+                  whiteSpace: "nowrap",
+                }}
               >
                 Payment
               </TableCell>
               {homeworkForWeek.map((hw) => (
-                <TableCell key={hw.id} align="center" sx={{ minWidth: 120 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
+                <TableCell
+                  key={hw.id}
+                  align="center"
+                  sx={{ minWidth: 120 }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 0.5,
+                    }}
+                  >
                     <span>{hw.title}</span>
                     {isAdmin && (
                       <Tooltip title="Delete homework">
                         <IconButton
                           size="small"
-                          color="error"
                           onClick={() => onDeleteHomework(hw.id)}
                           aria-label={`Delete ${hw.title}`}
                           sx={{ opacity: 0.5, "&:hover": { opacity: 1 } }}
                         >
-                          <DeleteIcon fontSize="inherit" />
+                          <DeleteIcon sx={{ fontSize: 14 }} />
                         </IconButton>
                       </Tooltip>
                     )}
@@ -102,7 +152,9 @@ export default function WeekContent({
                 key={student.id}
                 student={student}
                 isInClass={!!attendanceByStudentId[student.id]}
-                paymentStatus={payments[`${student.id}-${termKey}-${weekIndex}`] ?? "unpaid"}
+                paymentStatus={
+                  payments[`${student.id}-${termKey}-${weekIndex}`] ?? "unpaid"
+                }
                 homeworkForWeek={homeworkForWeek}
                 completions={completions}
                 onAttendanceChange={onAttendanceChange}
@@ -113,14 +165,7 @@ export default function WeekContent({
             ))}
           </TableBody>
         </Table>
-      </Paper>
-      {isAdmin && (
-        <Box sx={{ mt: 2 }}>
-          <Button variant="outlined" size="small" onClick={onAddHomework}>
-            + Add Homework
-          </Button>
-        </Box>
-      )}
+      </Card>
     </Box>
   );
 }

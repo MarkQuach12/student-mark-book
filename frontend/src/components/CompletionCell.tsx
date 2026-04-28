@@ -7,10 +7,15 @@ interface CompletionCellProps {
   readOnly?: boolean;
 }
 
-export default function CompletionCell({ completed, onChange, readOnly = false }: CompletionCellProps) {
+export default function CompletionCell({
+  completed,
+  onChange,
+  readOnly = false,
+}: CompletionCellProps) {
   return (
     <TableCell padding="checkbox" align="center">
       <Checkbox
+        size="small"
         checked={completed}
         onChange={(e) => onChange(e.target.checked)}
         color="primary"

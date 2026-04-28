@@ -168,7 +168,12 @@ const WeeklyCalendar = ({ classes, exams, extraLessons = [], isAdmin = false, on
                 borderLeft: "1px solid",
                 borderRight: idx === weekDates.length - 1 ? "1px solid" : undefined,
                 borderColor: "divider",
-                ...(isSameDate(date, today) && { backgroundColor: "rgba(255, 160, 113, 0.12)" }),
+                ...(isSameDate(date, today) && {
+                  backgroundColor: (t) =>
+                    t.palette.mode === "dark"
+                      ? "rgba(59, 111, 160, 0.10)"
+                      : "#EEF2F7",
+                }),
               }}
             >
               <Typography
@@ -208,8 +213,9 @@ const WeeklyCalendar = ({ classes, exams, extraLessons = [], isAdmin = false, on
                   position: "absolute",
                   top: (hour - startHour) * PIXELS_PER_HOUR - 8,
                   right: 8,
-                  color: "text.secondary",
-                  fontSize: "0.75rem",
+                  color: "text.disabled",
+                  fontSize: "0.6875rem",
+                  fontFamily: "'JetBrains Mono', monospace",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -229,7 +235,12 @@ const WeeklyCalendar = ({ classes, exams, extraLessons = [], isAdmin = false, on
                 borderLeft: "1px solid",
                 borderRight: idx === weekDates.length - 1 ? "1px solid" : undefined,
                 borderColor: "divider",
-                ...(isSameDate(date, today) && { backgroundColor: "rgba(255, 160, 113, 0.05)" }),
+                ...(isSameDate(date, today) && {
+                  backgroundColor: (t) =>
+                    t.palette.mode === "dark"
+                      ? "rgba(59, 111, 160, 0.05)"
+                      : "#F4F7FB",
+                }),
               }}
             >
               {hours.map((hour) =>  (

@@ -11,6 +11,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { validateResetToken, resetPassword } from "../services/api";
 import { validatePassword } from "../utils/formValidation";
 import AuthForm from "../components/AuthForm";
+import AuthLayout from "../components/AuthLayout";
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -54,9 +55,11 @@ export default function ResetPasswordPage() {
   // Checking token validity
   if (tokenValid === null) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", pt: 12 }}>
-        <CircularProgress />
-      </Box>
+      <AuthLayout>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 12 }}>
+          <CircularProgress size={28} />
+        </Box>
+      </AuthLayout>
     );
   }
 

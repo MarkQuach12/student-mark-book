@@ -6,14 +6,15 @@ export interface ColorOption {
 }
 
 export const CLASS_COLOR_PALETTE: ColorOption[] = [
-  { key: "teal", label: "Teal", main: "#00796B", hover: "#00695C" },
-  { key: "blue", label: "Blue", main: "#1565C0", hover: "#0D47A1" },
-  { key: "indigo", label: "Indigo", main: "#303F9F", hover: "#283593" },
-  { key: "purple", label: "Purple", main: "#7B1FA2", hover: "#6A1B9A" },
-  { key: "pink", label: "Pink", main: "#C2185B", hover: "#AD1457" },
-  { key: "red", label: "Red", main: "#D32F2F", hover: "#C62828" },
-  { key: "orange", label: "Orange", main: "#EF6C00", hover: "#E65100" },
-  { key: "green", label: "Green", main: "#2E7D32", hover: "#1B5E20" },
+  { key: "teal", label: "Teal", main: "#0F766E", hover: "#115E59" },
+  { key: "blue", label: "Blue", main: "#1E3A5F", hover: "#1E40AF" },
+  { key: "indigo", label: "Indigo", main: "#3730A3", hover: "#312E81" },
+  { key: "purple", label: "Purple", main: "#6D28D9", hover: "#5B21B6" },
+  { key: "pink", label: "Pink", main: "#9D174D", hover: "#831843" },
+  { key: "red", label: "Red", main: "#B91C1C", hover: "#991B1B" },
+  { key: "amber", label: "Amber", main: "#B45309", hover: "#92400E" },
+  { key: "green", label: "Green", main: "#15803D", hover: "#166534" },
+  { key: "slate", label: "Slate", main: "#475569", hover: "#334155" },
 ];
 
 export const DEFAULT_COLOR = CLASS_COLOR_PALETTE[0];

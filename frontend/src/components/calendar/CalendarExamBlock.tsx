@@ -10,25 +10,48 @@ const CalendarExamBlock = ({ exam }: Props) => {
   return (
     <Box
       sx={{
-        backgroundColor: "warning.dark",
-        color: "warning.contrastText",
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        bgcolor: (t) =>
+          t.palette.mode === "dark"
+            ? "rgba(251, 191, 36, 0.10)"
+            : "rgba(217, 119, 6, 0.08)",
+        border: 1,
+        borderColor: "warning.main",
+        borderLeft: "3px solid",
+        borderLeftColor: "warning.main",
         borderRadius: 1,
-        borderLeft: "3px dashed",
-        borderLeftColor: "rgba(255,255,255,0.5)",
-        px: 1,
+        px: 1.5,
         py: 0.5,
         overflow: "hidden",
-        "&:hover": { filter: "brightness(0.85)", boxShadow: 2 },
-        transition: "background-color 0.2s, box-shadow 0.2s",
-        cursor: "default",
       }}
     >
-      <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3, fontSize: "0.8rem" }}>
-        {exam.title}
-      </Typography>
-      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: "0.7rem" }}>
-        All day
-      </Typography>
+      <Box
+        sx={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          bgcolor: "warning.main",
+          flexShrink: 0,
+        }}
+      />
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 500,
+            fontSize: "0.6875rem",
+            lineHeight: 1.2,
+            display: "block",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {exam.title}
+        </Typography>
+      </Box>
     </Box>
   );
 };

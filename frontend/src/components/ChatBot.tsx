@@ -3,16 +3,17 @@ import {
   Box,
   IconButton,
   TextField,
+  Tooltip,
   Typography,
   Paper,
   Fade,
   Avatar,
   CircularProgress,
 } from "@mui/material";
-import ChatIcon from "@mui/icons-material/Chat";
-import RemoveIcon from "@mui/icons-material/Remove";
+import ChatIcon from "@mui/icons-material/ChatBubbleOutline";
+import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
-import SmartToyIcon from "@mui/icons-material/SmartToy";
+import SmartToyIcon from "@mui/icons-material/SmartToyOutlined";
 import { sendChatMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -50,7 +51,6 @@ export default function ChatBot() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Reset chat when user changes (login/logout/switch account)
   useEffect(() => {
     setMessages(initialMessages());
     setInput("");
@@ -98,45 +98,56 @@ export default function ChatBot() {
     }
   };
 
+  if (!user) return null;
+
   return (
-    <Box sx={{ position: "fixed", bottom: 24, right: 24, zIndex: 1300 }}>
-      {/* Chat Window */}
+    <Box
+      sx={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 1300,
+      }}
+    >
       <Fade in={open}>
         <Paper
-          elevation={8}
+          variant="outlined"
           sx={{
             position: "fixed",
-            bottom: 24,
+            bottom: 88,
             right: 24,
-            width: 340,
-            height: 440,
+            width: 360,
+            maxHeight: 560,
             display: open ? "flex" : "none",
             flexDirection: "column",
-            borderRadius: 3,
+            borderRadius: 2,
             overflow: "hidden",
+            bgcolor: "background.paper",
           }}
         >
           {/* Header */}
           <Box
             sx={{
-              bgcolor: "primary.main",
-              color: "white",
-              px: 2,
-              py: 1.5,
+              px: 4,
+              py: 3,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              borderBottom: 1,
+              borderColor: "divider",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <SmartToyIcon fontSize="small" />
-              <Typography variant="subtitle2" fontWeight={600}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <SmartToyIcon sx={{ fontSize: 16, color: "primary.main" }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                 Assistant
               </Typography>
             </Box>
-            <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: "white" }}>
-              <RemoveIcon fontSize="small" />
-            </IconButton>
+            <Tooltip title="Close">
+              <IconButton size="small" onClick={() => setOpen(false)}>
+                <CloseIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
           </Box>
 
           {/* Messages */}
@@ -144,12 +155,12 @@ export default function ChatBot() {
             sx={{
               flex: 1,
               overflowY: "auto",
-              px: 2,
-              py: 1.5,
+              px: 4,
+              py: 3,
               display: "flex",
               flexDirection: "column",
-              gap: 1.5,
-              bgcolor: "#f5f5f5",
+              gap: 3,
+              minHeight: 280,
             }}
           >
             {messages.map((msg) => (
@@ -157,28 +168,47 @@ export default function ChatBot() {
                 key={msg.id}
                 sx={{
                   display: "flex",
-                  justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
-                  gap: 1,
+                  justifyContent:
+                    msg.sender === "user" ? "flex-end" : "flex-start",
+                  gap: 2,
                   alignItems: "flex-end",
                 }}
               >
                 {msg.sender === "bot" && (
-                  <Avatar sx={{ width: 28, height: 28, bgcolor: "primary.main" }}>
-                    <SmartToyIcon sx={{ fontSize: 16 }} />
+                  <Avatar
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      bgcolor: (t) =>
+                        t.palette.mode === "dark"
+                          ? "rgba(59, 111, 160, 0.20)"
+                          : "primary.tint",
+                      color: "primary.main",
+                    }}
+                  >
+                    <SmartToyIcon sx={{ fontSize: 14 }} />
                   </Avatar>
                 )}
                 <Box
                   sx={{
-                    maxWidth: "75%",
-                    px: 1.5,
-                    py: 1,
-                    borderRadius: 2,
-                    bgcolor: msg.sender === "user" ? "primary.main" : "white",
-                    color: msg.sender === "user" ? "white" : "text.primary",
-                    boxShadow: 1,
-                    fontSize: "0.875rem",
-                    lineHeight: 1.4,
+                    maxWidth: "78%",
+                    px: 3,
+                    py: 2,
+                    borderRadius: 1.5,
+                    fontSize: "0.8125rem",
+                    lineHeight: 1.5,
                     whiteSpace: "pre-wrap",
+                    bgcolor:
+                      msg.sender === "user"
+                        ? "primary.main"
+                        : (t) =>
+                            t.palette.mode === "dark"
+                              ? "rgba(243, 244, 246, 0.05)"
+                              : "#F3F4F6",
+                    color:
+                      msg.sender === "user"
+                        ? "primary.contrastText"
+                        : "text.primary",
                   }}
                 >
                   {renderMarkdown(msg.text)}
@@ -186,25 +216,37 @@ export default function ChatBot() {
               </Box>
             ))}
             {loading && (
-              <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
-                <Avatar sx={{ width: 28, height: 28, bgcolor: "primary.main" }}>
-                  <SmartToyIcon sx={{ fontSize: 16 }} />
+              <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end" }}>
+                <Avatar
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    bgcolor: (t) =>
+                      t.palette.mode === "dark"
+                        ? "rgba(59, 111, 160, 0.20)"
+                        : "primary.tint",
+                    color: "primary.main",
+                  }}
+                >
+                  <SmartToyIcon sx={{ fontSize: 14 }} />
                 </Avatar>
                 <Box
                   sx={{
-                    px: 1.5,
-                    py: 1,
-                    borderRadius: 2,
-                    bgcolor: "white",
-                    boxShadow: 1,
+                    px: 3,
+                    py: 2,
+                    borderRadius: 1.5,
+                    bgcolor: (t) =>
+                      t.palette.mode === "dark"
+                        ? "rgba(243, 244, 246, 0.05)"
+                        : "#F3F4F6",
                     display: "flex",
                     alignItems: "center",
-                    gap: 1,
+                    gap: 2,
                   }}
                 >
-                  <CircularProgress size={16} />
+                  <CircularProgress size={14} />
                   <Typography variant="caption" color="text.secondary">
-                    Thinking...
+                    Thinking…
                   </Typography>
                 </Box>
               </Box>
@@ -215,18 +257,17 @@ export default function ChatBot() {
           {/* Input */}
           <Box
             sx={{
-              p: 1.5,
-              borderTop: "1px solid",
+              p: 3,
+              borderTop: 1,
               borderColor: "divider",
               display: "flex",
-              gap: 1,
-              bgcolor: "white",
+              gap: 2,
             }}
           >
             <TextField
               size="small"
               fullWidth
-              placeholder="Type a message..."
+              placeholder="Ask about classes, exams, payments…"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -236,40 +277,50 @@ export default function ChatBot() {
                 }
               }}
               disabled={loading}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  fontSize: "0.875rem",
-                },
-              }}
             />
-            <IconButton
-              color="primary"
-              onClick={handleSend}
-              disabled={!input.trim() || loading}
-              size="small"
-            >
-              <SendIcon fontSize="small" />
-            </IconButton>
+            <Tooltip title="Send">
+              <span>
+                <IconButton
+                  color="primary"
+                  onClick={handleSend}
+                  disabled={!input.trim() || loading}
+                  size="small"
+                  sx={{
+                    bgcolor: "primary.main",
+                    color: "primary.contrastText",
+                    "&:hover": { bgcolor: "primary.main", opacity: 0.92 },
+                    "&.Mui-disabled": {
+                      bgcolor: "action.hover",
+                      color: "text.disabled",
+                    },
+                  }}
+                >
+                  <SendIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Box>
         </Paper>
       </Fade>
 
       {/* Floating Button */}
       {!open && (
-        <IconButton
-          onClick={() => setOpen(true)}
-          sx={{
-            bgcolor: "primary.main",
-            color: "white",
-            width: 52,
-            height: 52,
-            boxShadow: 4,
-            "&:hover": { bgcolor: "primary.dark" },
-          }}
-        >
-          <ChatIcon />
-        </IconButton>
+        <Tooltip title="Ask the assistant">
+          <IconButton
+            onClick={() => setOpen(true)}
+            sx={{
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              width: 44,
+              height: 44,
+              boxShadow: 3,
+              borderRadius: 2,
+              "&:hover": { bgcolor: "primary.main", opacity: 0.92 },
+            }}
+          >
+            <ChatIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Tooltip>
       )}
     </Box>
   );

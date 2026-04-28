@@ -14,7 +14,11 @@ interface StudentRowProps {
   completions: Record<string, boolean>;
   onAttendanceChange: (studentId: string, inClass: boolean) => void;
   onPaymentChange: (studentId: string, status: PaymentStatus) => void;
-  onCompletionChange: (studentId: string, homeworkId: string, completed: boolean) => void;
+  onCompletionChange: (
+    studentId: string,
+    homeworkId: string,
+    completed: boolean,
+  ) => void;
   isAdmin?: boolean;
 }
 
@@ -39,13 +43,7 @@ export default function StudentRow({
             onChange={(e) => onAttendanceChange(student.id, e.target.checked)}
             size="small"
             disabled={!isAdmin}
-            sx={{
-              color: "action.active",
-              "&.Mui-checked": {
-                color: "success.main",
-                opacity: 0.85,
-              },
-            }}
+            color="success"
           />
         </Box>
       </TableCell>
@@ -53,7 +51,13 @@ export default function StudentRow({
         component="th"
         scope="row"
         align="center"
-        sx={{ fontWeight: 500, pl: 1, pr: 2, whiteSpace: "nowrap", width: hasHomework ? "1px" : undefined }}
+        sx={{
+          fontWeight: 500,
+          pl: 1,
+          pr: 2,
+          whiteSpace: "nowrap",
+          width: hasHomework ? "1px" : undefined,
+        }}
       >
         {student.name}
       </TableCell>
@@ -67,7 +71,9 @@ export default function StudentRow({
         <CompletionCell
           key={hw.id}
           completed={!!completions[`${student.id}-${hw.id}`]}
-          onChange={(completed) => onCompletionChange(student.id, hw.id, completed)}
+          onChange={(completed) =>
+            onCompletionChange(student.id, hw.id, completed)
+          }
           readOnly={!isAdmin}
         />
       ))}

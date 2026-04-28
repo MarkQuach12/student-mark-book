@@ -1,14 +1,15 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import PersonRemoveIcon from "@mui/icons-material/PersonRemoveOutlined";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForeverOutlined";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 interface ClassHeaderProps {
@@ -20,76 +21,110 @@ interface ClassHeaderProps {
   isAdmin: boolean;
 }
 
-export default function ClassHeader({ className, label, studentCount, onRemoveStudent, onDeleteClass, isAdmin }: ClassHeaderProps) {
+export default function ClassHeader({
+  className,
+  label,
+  studentCount,
+  onRemoveStudent,
+  onDeleteClass,
+  isAdmin,
+}: ClassHeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
   const handleMenuClose = () => setAnchorEl(null);
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="h5" component="h1" gutterBottom sx={{ textAlign: "center" }}>
-        {className}
-      </Typography>
-      {label && (
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: -1, mb: 1, fontStyle: "italic" }}>
-          {label}
+    <Box
+      sx={{
+        mb: 6,
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 4,
+        flexWrap: "wrap",
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="h1" component="h1" sx={{ mb: 1 }}>
+          {className}
         </Typography>
-      )}
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        {isAdmin && (
-          <Typography variant="body2" color="text.secondary">
-            {studentCount} students
-          </Typography>
-        )}
-        {isAdmin && (
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
+          {label && (
+            <Typography variant="body2" color="text.secondary">
+              {label}
+            </Typography>
+          )}
+          {label && isAdmin && (
+            <Typography variant="body2" color="text.disabled">
+              ·
+            </Typography>
+          )}
+          {isAdmin && (
+            <Typography variant="body2" color="text.secondary">
+              {studentCount} student{studentCount === 1 ? "" : "s"}
+            </Typography>
+          )}
+        </Box>
+      </Box>
+
+      {isAdmin && (
+        <Box>
+          <Tooltip title="Class actions">
             <IconButton
               size="small"
               onClick={(e) => setAnchorEl(e.currentTarget)}
               sx={{
-                border: "1px solid",
+                border: 1,
                 borderColor: "divider",
-                borderRadius: 2,
-                ml: 0.5,
+                borderRadius: 1.5,
               }}
             >
-              <MoreVertIcon fontSize="small" />
+              <MoreVertIcon sx={{ fontSize: 18 }} />
             </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={menuOpen}
-              onClose={handleMenuClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              slotProps={{
-                paper: {
-                  sx: { borderRadius: 2, minWidth: 200, mt: 0.5 },
-                },
+          </Tooltip>
+          <Menu
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            slotProps={{ paper: { sx: { minWidth: 200, mt: 0.5 } } }}
+          >
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onRemoveStudent();
               }}
             >
-              <MenuItem
-                onClick={() => { handleMenuClose(); onRemoveStudent(); }}
-              >
-                <ListItemIcon>
-                  <PersonRemoveIcon fontSize="small" color="warning" />
-                </ListItemIcon>
-                <ListItemText>Remove Student</ListItemText>
-              </MenuItem>
-              <Divider />
-              <MenuItem
-                onClick={() => { handleMenuClose(); onDeleteClass(); }}
-                sx={{ color: "error.main" }}
-              >
-                <ListItemIcon>
-                  <DeleteForeverIcon fontSize="small" color="error" />
-                </ListItemIcon>
-                <ListItemText>Delete Class</ListItemText>
-              </MenuItem>
-            </Menu>
-          </Box>
-        )}
-      </Box>
+              <ListItemIcon>
+                <PersonRemoveIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Remove Student</ListItemText>
+            </MenuItem>
+            <Divider />
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onDeleteClass();
+              }}
+              sx={{ color: "error.main" }}
+            >
+              <ListItemIcon>
+                <DeleteForeverIcon fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText>Delete Class</ListItemText>
+            </MenuItem>
+          </Menu>
+        </Box>
+      )}
     </Box>
   );
 }

@@ -9,9 +9,13 @@ interface TermSelectorProps {
   onTermChange: (key: string) => void;
 }
 
-export default function TermSelector({ terms, selectedTermKey, onTermChange }: TermSelectorProps) {
+export default function TermSelector({
+  terms,
+  selectedTermKey,
+  onTermChange,
+}: TermSelectorProps) {
   return (
-    <FormControl size="small" sx={{ minWidth: 180, mb: 2 }}>
+    <FormControl size="small" sx={{ minWidth: 200, mb: 4 }}>
       <Select
         value={selectedTermKey}
         onChange={(e) => onTermChange(e.target.value)}
