@@ -55,10 +55,15 @@ public class ExtraLessonService {
         ClassEntity classEntity = classRepository.findById(classId)
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
 
+        LocalDate lessonDate = LocalDate.parse(request.lessonDate());
+        if (lessonDate.isBefore(LocalDate.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lesson date cannot be in the past.");
+        }
+
         ExtraLesson lesson = new ExtraLesson();
         lesson.setClassEntity(classEntity);
         lesson.setTitle(request.title());
-        lesson.setLessonDate(LocalDate.parse(request.lessonDate()));
+        lesson.setLessonDate(lessonDate);
         lesson.setStartTime(LocalTime.parse(request.startTime()));
         lesson.setEndTime(LocalTime.parse(request.endTime()));
 

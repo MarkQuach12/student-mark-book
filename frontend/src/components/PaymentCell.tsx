@@ -52,30 +52,35 @@ export default function PaymentCell({
   return (
     <TableCell sx={{ pl: 1, pr: 2, width: compact ? "1px" : undefined }}>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <Select
-          size="small"
-          value={status}
-          onChange={(e) => onChange(e.target.value as PaymentStatus)}
-          disabled={readOnly}
-          variant="standard"
-          disableUnderline
-          renderValue={(value) => <StatusInline status={value as PaymentStatus} />}
-          sx={{
-            fontSize: "0.8125rem",
-            minWidth: 96,
-            "& .MuiSelect-select": {
-              py: 0.5,
-              px: 1,
-              borderRadius: 1,
-              "&:hover": { bgcolor: "action.hover" },
-            },
-          }}
-        >
-          <MenuItem value="unpaid"><StatusInline status="unpaid" /></MenuItem>
-          <MenuItem value="paid_cash"><StatusInline status="paid_cash" /></MenuItem>
-          <MenuItem value="paid_online"><StatusInline status="paid_online" /></MenuItem>
-          <MenuItem value="away"><StatusInline status="away" /></MenuItem>
-        </Select>
+        {readOnly ? (
+          <Box sx={{ py: 0.5, px: 1 }}>
+            <StatusInline status={status} />
+          </Box>
+        ) : (
+          <Select
+            size="small"
+            value={status}
+            onChange={(e) => onChange(e.target.value as PaymentStatus)}
+            variant="standard"
+            disableUnderline
+            renderValue={(value) => <StatusInline status={value as PaymentStatus} />}
+            sx={{
+              fontSize: "0.8125rem",
+              minWidth: 96,
+              "& .MuiSelect-select": {
+                py: 0.5,
+                px: 1,
+                borderRadius: 1,
+                "&:hover": { bgcolor: "action.hover" },
+              },
+            }}
+          >
+            <MenuItem value="unpaid"><StatusInline status="unpaid" /></MenuItem>
+            <MenuItem value="paid_cash"><StatusInline status="paid_cash" /></MenuItem>
+            <MenuItem value="paid_online"><StatusInline status="paid_online" /></MenuItem>
+            <MenuItem value="away"><StatusInline status="away" /></MenuItem>
+          </Select>
+        )}
       </Box>
     </TableCell>
   );

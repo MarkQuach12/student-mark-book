@@ -17,6 +17,7 @@ backend/.env
 backend/node_modules/
 backend/target/
 backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-dev.properties
 
 # Frontend
 frontend/node_modules/

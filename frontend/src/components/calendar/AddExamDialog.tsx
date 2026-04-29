@@ -48,10 +48,15 @@ export default function AddExamDialog({ open, onClose, classes, preselectedClass
   };
 
   const handleCreate = async () => {
+    const today = new Date().toISOString().split("T")[0];
     const newErrors: FormErrors = {
       classId: classId ? "" : "Required",
       title: title.trim() ? "" : "Required",
-      examDate: examDate ? "" : "Required",
+      examDate: examDate
+        ? examDate < today
+          ? "Date cannot be in the past"
+          : ""
+        : "Required",
     };
 
     setErrors(newErrors);
@@ -114,6 +119,7 @@ export default function AddExamDialog({ open, onClose, classes, preselectedClass
           }}
           error={!!errors.title}
           helperText={errors.title}
+          inputProps={{ maxLength: 100 }}
         />
 
         <TextField
@@ -129,6 +135,7 @@ export default function AddExamDialog({ open, onClose, classes, preselectedClass
           error={!!errors.examDate}
           helperText={errors.examDate}
           slotProps={{ inputLabel: { shrink: true } }}
+          inputProps={{ min: new Date().toISOString().split("T")[0] }}
         />
 
         {submitError && (

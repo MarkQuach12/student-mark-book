@@ -33,6 +33,7 @@ export default function AddStudentDialog({ open, onClose, onAdd }: AddStudentDia
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           error={!!error}
           helperText={error || ""}
+          inputProps={{ maxLength: 100 }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>

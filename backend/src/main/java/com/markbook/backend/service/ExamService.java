@@ -65,6 +65,10 @@ public class ExamService {
     public Exam createExam(String userId, UUID classId, String title, LocalDate examDate) {
         log.info("Creating exam for classId={} title={} date={}", classId, title, examDate);
 
+        if (examDate.isBefore(LocalDate.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam date cannot be in the past.");
+        }
+
         // Verify access
         if (!SecurityUtils.isAdmin() && !assignmentRepository.existsByUserIdAndClassEntityId(userId, classId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");

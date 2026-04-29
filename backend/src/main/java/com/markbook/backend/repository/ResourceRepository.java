@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ResourceRepository extends JpaRepository<Resource, UUID> {
     List<Resource> findByTopicIdOrderBySortOrder(UUID topicId);
+    boolean existsByTopicIdAndTitleIgnoreCase(UUID topicId, String title);
 }

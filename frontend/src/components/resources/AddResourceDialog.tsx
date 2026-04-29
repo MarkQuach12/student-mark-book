@@ -17,16 +17,31 @@ interface AddResourceDialogProps {
   onAdded: (resources: ApiResource[]) => void;
 }
 
+function isValidUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function AddResourceDialog({ open, topicId, onClose, onAdded }: AddResourceDialogProps) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!topicId || !title.trim() || !url.trim()) return;
+    if (!isValidUrl(url.trim())) {
+      setUrlError("Enter a valid URL starting with http:// or https://");
+      return;
+    }
     setSaving(true);
     setError(null);
+    setUrlError(null);
     try {
       const resource = await createResource(topicId, { title: title.trim(), driveUrl: url.trim() });
       onAdded([resource]);
@@ -51,14 +66,21 @@ export default function AddResourceDialog({ open, topicId, onClose, onAdded }: A
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={saving}
+            inputProps={{ maxLength: 200 }}
           />
           <TextField
             fullWidth
             label="URL"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              if (urlError) setUrlError(null);
+            }}
             disabled={saving}
             placeholder="https://drive.google.com/..."
+            inputProps={{ maxLength: 2000 }}
+            error={!!urlError}
+            helperText={urlError ?? ""}
           />
           {error && <Alert severity="error">{error}</Alert>}
         </Box>

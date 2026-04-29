@@ -43,14 +43,49 @@ public class ResourceService {
         Topic topic = topicRepository.findById(topicId)
                 .orElseThrow(() -> new ResourceNotFoundException("Topic not found"));
 
+        String trimmedTitle = title.trim();
+        if (resourceRepository.existsByTopicIdAndTitleIgnoreCase(topicId, trimmedTitle)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A resource with this name already exists in this topic.");
+        }
+
         Resource resource = new Resource();
         resource.setTopic(topic);
-        resource.setTitle(title);
-        resource.setDriveUrl(url);
+        resource.setTitle(trimmedTitle);
+        resource.setDriveUrl(url.trim());
+        // fileType inference disabled: most Drive share links don't expose extensions.
+        // inferFileType() remains for future re-use if we ever wire up Drive API metadata.
 
         Resource saved = resourceRepository.save(resource);
         log.info("Resource created id={} topicId={} title={}", saved.getId(), topicId, title);
         return ResourceDTO.from(saved);
+    }
+
+    static String inferFileType(String url) {
+        if (url == null) return null;
+        String lower = url.toLowerCase();
+
+        if (lower.contains("docs.google.com/document/")) return "gdoc";
+        if (lower.contains("docs.google.com/presentation/")) return "gslides";
+        if (lower.contains("docs.google.com/spreadsheets/")) return "gsheet";
+
+        int q = lower.indexOf('?');
+        if (q >= 0) lower = lower.substring(0, q);
+        int h = lower.indexOf('#');
+        if (h >= 0) lower = lower.substring(0, h);
+
+        int dot = lower.lastIndexOf('.');
+        if (dot < 0 || dot == lower.length() - 1) return null;
+        String ext = lower.substring(dot + 1);
+
+        return switch (ext) {
+            case "pdf" -> "pdf";
+            case "doc", "docx" -> ext;
+            case "ppt", "pptx" -> "pptx";
+            case "xls", "xlsx" -> "xlsx";
+            case "png", "jpg", "jpeg" -> ext;
+            default -> null;
+        };
     }
 
     @Transactional

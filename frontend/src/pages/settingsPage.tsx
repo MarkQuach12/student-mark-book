@@ -12,6 +12,7 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { getInitials } from "../utils/stringUtils";
+import { validatePassword } from "../utils/formValidation";
 import { updateUserName, changePassword, fetchClasses } from "../services/api";
 import type { ClassData } from "./classPage/types";
 import {
@@ -102,11 +103,9 @@ export default function SettingsPage() {
   };
 
   const handleUpdatePassword = async () => {
-    if (newPassword.length < 8) {
-      setToast({
-        type: "error",
-        message: "New password must be at least 8 characters.",
-      });
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setToast({ type: "error", message: passwordError });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -201,6 +200,7 @@ export default function SettingsPage() {
             label="New password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+            helperText="At least 8 characters, with uppercase, lowercase, digit, and special character (@$!%*?&)"
           />
           <TextField
             size="small"

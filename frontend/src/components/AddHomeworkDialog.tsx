@@ -34,6 +34,7 @@ export default function AddHomeworkDialog({ open, weekLabel, onClose, onAdd }: A
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           error={!!error}
           helperText={error || ""}
+          inputProps={{ maxLength: 100 }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>

@@ -49,7 +49,7 @@ function authHeaders(extra?: Record<string, string>): Record<string, string> {
   return { ...base, ...extra };
 }
 
-async function handleResponse<T>(res: Response): Promise<T> {
+async function expectOk(res: Response): Promise<void> {
   if (res.status === 401) {
     clearAuth();
     window.location.href = "/login";
@@ -60,11 +60,15 @@ async function handleResponse<T>(res: Response): Promise<T> {
     let message = text || `HTTP ${res.status}`;
     try {
       const json = JSON.parse(text);
-      if (json.message) message = json.message;
-      else if (json.error) message = json.error;
+      if (json.error) message = json.error;
+      else if (json.message) message = json.message;
     } catch { /* use raw text */ }
     throw new Error(message);
   }
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  await expectOk(res);
   return res.json() as Promise<T>;
 }
 
@@ -115,7 +119,7 @@ export async function forgotPassword(email: string): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
 }
 
 export async function resetPassword(token: string, newPassword: string): Promise<void> {
@@ -124,12 +128,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, newPassword }),
   });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    let message = text || `HTTP ${res.status}`;
-    try { const json = JSON.parse(text); if (json.message) message = json.message; } catch { /* raw text */ }
-    throw new Error(message);
-  }
+  await expectOk(res);
 }
 
 // ── API response types (where they differ from existing frontend types) ──
@@ -282,7 +281,7 @@ export async function createClass(data: {
 
 export async function deleteClass(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE", headers: authHeaders() });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
   invalidateCache("classes");
   invalidateCache(`overview:${id}`);
 }
@@ -309,7 +308,7 @@ export async function addStudent(classId: string, name: string): Promise<Student
 
 export async function deleteStudent(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/students/${id}`, { method: "DELETE", headers: authHeaders() });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
 }
 
 // ── Terms ────────────────────────────────────────────────────────────
@@ -371,7 +370,7 @@ export async function createHomework(
 
 export async function deleteHomework(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/homework/${id}`, { method: "DELETE", headers: authHeaders() });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
   invalidateCache("overview:");
 }
 
@@ -442,7 +441,7 @@ export async function createExam(data: {
 
 export async function deleteExam(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/exams/${id}`, { method: "DELETE", headers: authHeaders() });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
   invalidateCache("exams:");
   invalidateCache("overview:");
 }
@@ -495,7 +494,7 @@ export async function createExtraLesson(data: {
 
 export async function deleteExtraLesson(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/extra-lessons/${id}`, { method: "DELETE", headers: authHeaders() });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
   invalidateCache("extraLessons:");
   invalidateCache("overview:");
 }
@@ -542,13 +541,7 @@ export async function assignUserToClass(userId: string, classId: string): Promis
     method: "POST",
     headers: authHeaders(),
   });
-  if (res.status === 401) { clearAuth(); window.location.href = "/login"; throw new Error("Unauthorized"); }
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    let message = text || `HTTP ${res.status}`;
-    try { const json = JSON.parse(text); if (json.error) message = json.error; } catch { /* raw text */ }
-    throw new Error(message);
-  }
+  await expectOk(res);
 }
 
 export async function unassignUserFromClass(userId: string, classId: string): Promise<void> {
@@ -556,7 +549,7 @@ export async function unassignUserFromClass(userId: string, classId: string): Pr
     method: "DELETE",
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
 }
 
 // ── Topics ──────────────────────────────────────────────────────────
@@ -606,7 +599,7 @@ export async function deleteTopic(topicId: string): Promise<void> {
     method: "DELETE",
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
   invalidateCache("overview:");
 }
 
@@ -631,7 +624,7 @@ export async function deleteResource(topicId: string, resourceId: string): Promi
     method: "DELETE",
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await expectOk(res);
   invalidateCache("overview:");
 }
 

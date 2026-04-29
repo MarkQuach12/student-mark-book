@@ -66,10 +66,15 @@ export default function AddExtraLessonDialog({ open, classes, onClose, onCreated
   };
 
   const handleCreate = async () => {
+    const today = new Date().toISOString().split("T")[0];
     const newErrors: FormErrors = {
       classId: classId ? "" : "Required",
       title: title.trim() ? "" : "Required",
-      lessonDate: lessonDate ? "" : "Required",
+      lessonDate: lessonDate
+        ? lessonDate < today
+          ? "Date cannot be in the past"
+          : ""
+        : "Required",
       startTime: validateTime(startTime),
       endTime: validateTime(endTime),
     };
@@ -142,6 +147,7 @@ export default function AddExtraLessonDialog({ open, classes, onClose, onCreated
           error={!!errors.title}
           helperText={errors.title}
           placeholder="e.g. Mock Exam Practice"
+          inputProps={{ maxLength: 200 }}
         />
 
         <TextField
@@ -157,6 +163,7 @@ export default function AddExtraLessonDialog({ open, classes, onClose, onCreated
           error={!!errors.lessonDate}
           helperText={errors.lessonDate}
           slotProps={{ inputLabel: { shrink: true } }}
+          inputProps={{ min: new Date().toISOString().split("T")[0] }}
         />
 
         <Box sx={{ display: "flex", gap: 2, mt: 1 }}>

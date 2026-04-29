@@ -277,6 +277,7 @@ export default function ChatBot() {
                 }
               }}
               disabled={loading}
+              inputProps={{ maxLength: 1000 }}
             />
             <Tooltip title="Send">
               <span>

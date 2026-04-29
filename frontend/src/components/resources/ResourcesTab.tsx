@@ -22,6 +22,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 import SlideshowIcon from "@mui/icons-material/Slideshow";
+import TableChartIcon from "@mui/icons-material/TableChart";
 import ImageIcon from "@mui/icons-material/Image";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import FolderIcon from "@mui/icons-material/Folder";
@@ -53,6 +54,10 @@ function getFileIcon(fileType: string | null) {
     case "pptx":
     case "gslides":
       return <SlideshowIcon color="warning" />;
+    case "xls":
+    case "xlsx":
+    case "gsheet":
+      return <TableChartIcon color="success" />;
     case "png":
     case "jpg":
     case "jpeg":

@@ -217,6 +217,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
           placeholder="e.g., School name or group"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
+          inputProps={{ maxLength: 100 }}
         />
 
         <FormControl fullWidth margin="dense" size="small" error={!!errors.dayOfWeek}>
@@ -316,6 +317,7 @@ export default function CreateClassModal({ open, onClose, onClassCreated }: Crea
                 size="small"
                 value={name}
                 onChange={(e) => handleStudentNameChange(index, e.target.value)}
+                inputProps={{ maxLength: 100 }}
               />
               <IconButton
                 size="small"
