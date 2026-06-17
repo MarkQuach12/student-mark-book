@@ -20,7 +20,7 @@ public class ChatController {
     @PostMapping
     public ChatResponse chat(@RequestBody @Valid ChatRequest body) {
         String userId = SecurityUtils.getCurrentUserId();
-        String reply = chatService.chat(userId, body.message());
+        String reply = chatService.chat(userId, body.message(), body.history());
         return new ChatResponse(reply);
     }
 }
