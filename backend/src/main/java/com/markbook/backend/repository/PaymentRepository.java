@@ -14,5 +14,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     @Query("SELECT p FROM Payment p JOIN FETCH p.student JOIN FETCH p.term WHERE p.student.classEntity.id = :classId")
     List<Payment> findByClassIdWithFetch(@Param("classId") UUID classId);
 
+    @Query("SELECT p FROM Payment p JOIN FETCH p.student JOIN FETCH p.term WHERE p.student.classEntity.id IN :classIds")
+    List<Payment> findByClassIdInWithFetch(@Param("classIds") List<UUID> classIds);
+
     void deleteByStudentId(UUID studentId);
 }
