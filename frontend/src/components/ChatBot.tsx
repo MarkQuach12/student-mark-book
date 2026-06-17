@@ -14,6 +14,7 @@ import ChatIcon from "@mui/icons-material/ChatBubbleOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import SmartToyIcon from "@mui/icons-material/SmartToyOutlined";
+import ReactMarkdown from "react-markdown";
 import { sendChatMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -24,15 +25,31 @@ interface Message {
   timestamp: Date;
 }
 
-function renderMarkdown(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
-    }
-    return <span key={i}>{part}</span>;
-  });
-}
+// Compact styling for markdown rendered inside the small chat bubble.
+const markdownSx = {
+  "& > *:first-of-type": { mt: 0 },
+  "& > *:last-child": { mb: 0 },
+  "& p": { my: 1 },
+  "& h1, & h2, & h3, & h4, & h5, & h6": {
+    fontSize: "0.875rem",
+    fontWeight: 600,
+    mt: 1.5,
+    mb: 0.5,
+  },
+  "& ul, & ol": { my: 0.5, pl: 3 },
+  "& li": { my: 0.25 },
+  "& strong": { fontWeight: 600 },
+  "& code": {
+    fontFamily: "monospace",
+    fontSize: "0.78em",
+    px: 0.5,
+    borderRadius: 0.5,
+    bgcolor: "action.hover",
+  },
+  "& a": { color: "primary.main" },
+  "& table": { borderCollapse: "collapse", my: 1 },
+  "& th, & td": { border: 1, borderColor: "divider", px: 1, py: 0.25 },
+} as const;
 
 const initialMessages = (): Message[] => [
   {
@@ -197,7 +214,8 @@ export default function ChatBot() {
                     borderRadius: 1.5,
                     fontSize: "0.8125rem",
                     lineHeight: 1.5,
-                    whiteSpace: "pre-wrap",
+                    whiteSpace: msg.sender === "user" ? "pre-wrap" : "normal",
+                    overflowWrap: "anywhere",
                     bgcolor:
                       msg.sender === "user"
                         ? "primary.main"
@@ -209,9 +227,14 @@ export default function ChatBot() {
                       msg.sender === "user"
                         ? "primary.contrastText"
                         : "text.primary",
+                    ...(msg.sender === "bot" ? markdownSx : {}),
                   }}
                 >
-                  {renderMarkdown(msg.text)}
+                  {msg.sender === "bot" ? (
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  ) : (
+                    msg.text
+                  )}
                 </Box>
               </Box>
             ))}
