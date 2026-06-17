@@ -12,4 +12,7 @@ public interface HomeworkRepository extends JpaRepository<Homework, UUID> {
 
     @Query("SELECT h FROM Homework h JOIN FETCH h.term WHERE h.classEntity.id = :classId")
     List<Homework> findByClassIdWithFetch(@Param("classId") UUID classId);
+
+    @Query("SELECT h FROM Homework h JOIN FETCH h.term WHERE h.classEntity.id IN :classIds")
+    List<Homework> findByClassIdInWithFetch(@Param("classIds") List<UUID> classIds);
 }

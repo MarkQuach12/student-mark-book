@@ -16,7 +16,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -98,10 +101,10 @@ public class ChatService {
         if (SecurityUtils.isAdmin()) {
             classes = classRepository.findAll();
         } else {
-            List<UUID> classIds = assignmentRepository.findByUserId(userId).stream()
+            List<UUID> assignedIds = assignmentRepository.findByUserId(userId).stream()
                     .map(a -> a.getClassEntity().getId())
                     .toList();
-            classes = classIds.isEmpty() ? List.of() : classRepository.findAllById(classIds);
+            classes = assignedIds.isEmpty() ? List.of() : classRepository.findAllById(assignedIds);
         }
 
         if (classes.isEmpty()) {
@@ -109,8 +112,34 @@ public class ChatService {
             return ctx.toString();
         }
 
+        List<UUID> classIds = classes.stream().map(ClassEntity::getId).toList();
+
         // Load all terms and weeks for gap-filling attendance/payments
         List<Term> allTerms = termRepository.findAllWithWeeks();
+
+        // Batch-load everything for all classes in a constant number of queries, then group
+        // in memory — avoids the per-class N+1 fan-out and per-student rescans.
+        Map<UUID, List<Student>> studentsByClass = studentRepository.findByClassEntityIdIn(classIds).stream()
+                .collect(Collectors.groupingBy(s -> s.getClassEntity().getId()));
+        Map<UUID, List<Payment>> paymentsByStudent = paymentRepository.findByClassIdInWithFetch(classIds).stream()
+                .collect(Collectors.groupingBy(p -> p.getStudent().getId()));
+        Map<UUID, List<Attendance>> attendanceByStudent = attendanceRepository.findByClassIdInWithFetch(classIds).stream()
+                .collect(Collectors.groupingBy(a -> a.getStudent().getId()));
+        Map<UUID, List<Homework>> homeworkByClass = homeworkRepository.findByClassIdInWithFetch(classIds).stream()
+                .collect(Collectors.groupingBy(h -> h.getClassEntity().getId()));
+
+        // Precompute the term/week grid once (shared by every student's "unmarked" computation)
+        List<String[]> termWeekGrid = new java.util.ArrayList<>();
+        for (Term term : allTerms) {
+            if (term.getWeeks() == null) continue;
+            for (TermWeek tw : term.getWeeks()) {
+                // [0]=lookup key "termKey:weekIndex", [1]=display label
+                termWeekGrid.add(new String[]{
+                        term.getKey() + ":" + tw.getWeekIndex(),
+                        formatTermKey(term.getKey()) + " wk" + tw.getWeekIndex()
+                });
+            }
+        }
 
         // Classes
         ctx.append("\n--- CLASSES ---\n");
@@ -122,9 +151,7 @@ public class ChatService {
             ctx.append(" [id:").append(c.getId()).append("]\n");
 
             // Students in this class
-            List<Student> students = studentRepository.findByClassEntityId(c.getId());
-            List<Payment> payments = paymentRepository.findByClassIdWithFetch(c.getId());
-            List<Attendance> attendance = attendanceRepository.findByClassIdWithFetch(c.getId());
+            List<Student> students = studentsByClass.getOrDefault(c.getId(), List.of());
 
             if (!students.isEmpty()) {
                 ctx.append("  Students:\n");
@@ -132,9 +159,7 @@ public class ChatService {
                     ctx.append("    ").append(s.getName()).append(":\n");
 
                     // Per-student payments
-                    List<Payment> studentPayments = payments.stream()
-                            .filter(p -> p.getStudent().getId().equals(s.getId()))
-                            .toList();
+                    List<Payment> studentPayments = paymentsByStudent.getOrDefault(s.getId(), List.of());
                     if (studentPayments.isEmpty()) {
                         ctx.append("      Payments: none recorded\n");
                     } else {
@@ -146,9 +171,7 @@ public class ChatService {
                     }
 
                     // Per-student attendance (recorded weeks + summary of unrecorded)
-                    List<Attendance> studentAttendance = attendance.stream()
-                            .filter(a -> a.getStudent().getId().equals(s.getId()))
-                            .toList();
+                    List<Attendance> studentAttendance = attendanceByStudent.getOrDefault(s.getId(), List.of());
                     ctx.append("      Attendance:\n");
                     if (!studentAttendance.isEmpty()) {
                         for (Attendance a : studentAttendance) {
@@ -157,17 +180,14 @@ public class ChatService {
                                     .append(": ").append(Boolean.TRUE.equals(a.getPresent()) ? "present" : "absent").append("\n");
                         }
                     }
-                    // List all term/weeks with no record
+                    // List all term/weeks with no record (O(1) set membership against the precomputed grid)
+                    Set<String> recorded = studentAttendance.stream()
+                            .map(a -> a.getTerm().getKey() + ":" + a.getWeekIndex())
+                            .collect(Collectors.toSet());
                     List<String> unmarked = new java.util.ArrayList<>();
-                    for (Term term : allTerms) {
-                        if (term.getWeeks() == null) continue;
-                        for (TermWeek tw : term.getWeeks()) {
-                            boolean hasRecord = studentAttendance.stream()
-                                    .anyMatch(a -> a.getTerm().getKey().equals(term.getKey())
-                                            && a.getWeekIndex().equals(tw.getWeekIndex()));
-                            if (!hasRecord) {
-                                unmarked.add(formatTermKey(term.getKey()) + " wk" + tw.getWeekIndex());
-                            }
+                    for (String[] slot : termWeekGrid) {
+                        if (!recorded.contains(slot[0])) {
+                            unmarked.add(slot[1]);
                         }
                     }
                     if (!unmarked.isEmpty()) {
@@ -178,7 +198,7 @@ public class ChatService {
             }
 
             // Homework
-            List<Homework> homework = homeworkRepository.findByClassIdWithFetch(c.getId());
+            List<Homework> homework = homeworkByClass.getOrDefault(c.getId(), List.of());
             if (!homework.isEmpty()) {
                 ctx.append("  Homework: ");
                 homework.forEach(h -> ctx.append(h.getTitle())
@@ -188,7 +208,6 @@ public class ChatService {
         }
 
         // Exams
-        List<UUID> classIds = classes.stream().map(ClassEntity::getId).toList();
         List<Exam> exams = examRepository.findByClassEntityIdIn(classIds);
         if (!exams.isEmpty()) {
             ctx.append("\n--- EXAMS ---\n");
@@ -223,6 +242,21 @@ public class ChatService {
                 If you don't have enough information to answer, say so. \
                 Format dates in a readable way (e.g. "Wednesday, March 18th"). \
                 When listing items, use short bullet points.
+
+                ACCURACY RULES (follow these exactly):
+                - Report the exact data. List actual student names — NEVER summarise a group as \
+                  "multiple students", "several students", or "students across all classes". \
+                  If a category (e.g. away, unpaid) applies to students, name every one of them.
+                - Do not editorialise or estimate. Avoid vague phrases like "generally strong", \
+                  "most students", or "attendance has been good" unless the user explicitly asks \
+                  for a summary — prefer the concrete figures and names from the data.
+                - Count precisely from the data. Do not guess totals or round.
+                - If a student or week has no record for something, say it is "not recorded" rather \
+                  than inferring a value.
+
+                FORMATTING:
+                - Your reply is rendered as Markdown. Use "##" for section headings, "-" for bullet \
+                  lists, and "**bold**" for emphasis. Do not use raw HTML.
 
                 Here is the user's data:
 
