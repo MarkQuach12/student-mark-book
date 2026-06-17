@@ -2,7 +2,6 @@ package com.markbook.backend.service;
 
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -37,7 +36,6 @@ class ChatServiceTest {
     @Mock private TermRepository termRepository;
 
     private ChatService chatService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String USER_ID = "user@example.com";
     private static final UUID CLASS_ID = UUID.randomUUID();
@@ -46,7 +44,7 @@ class ChatServiceTest {
     void setUp() {
         chatService = new ChatService(classRepository, assignmentRepository, examRepository,
                 paymentRepository, attendanceRepository, studentRepository, homeworkRepository,
-                extraLessonRepository, userRepository, termRepository, objectMapper);
+                extraLessonRepository, userRepository, termRepository);
     }
 
     @AfterEach
@@ -76,7 +74,7 @@ class ChatServiceTest {
         void returnsErrorMessageWhenApiKeyNotConfigured() {
             ReflectionTestUtils.setField(chatService, "anthropicApiKey", "");
 
-            String result = chatService.chat(USER_ID, "Hello");
+            String result = chatService.chat(USER_ID, "Hello", null);
 
             assertEquals("Chat is not configured. Please set the ANTHROPIC_API_KEY environment variable.", result);
         }
@@ -85,7 +83,7 @@ class ChatServiceTest {
         void returnsErrorMessageWhenApiKeyIsNull() {
             ReflectionTestUtils.setField(chatService, "anthropicApiKey", null);
 
-            String result = chatService.chat(USER_ID, "Hello");
+            String result = chatService.chat(USER_ID, "Hello", null);
 
             assertEquals("Chat is not configured. Please set the ANTHROPIC_API_KEY environment variable.", result);
         }
@@ -115,10 +113,10 @@ class ChatServiceTest {
             assignment.setClassEntity(classEntity);
             when(assignmentRepository.findByUserId(USER_ID)).thenReturn(List.of(assignment));
             when(classRepository.findAllById(List.of(CLASS_ID))).thenReturn(List.of(classEntity));
-            when(studentRepository.findByClassEntityId(CLASS_ID)).thenReturn(List.of());
-            when(paymentRepository.findByClassIdWithFetch(CLASS_ID)).thenReturn(List.of());
-            when(attendanceRepository.findByClassIdWithFetch(CLASS_ID)).thenReturn(List.of());
-            when(homeworkRepository.findByClassIdWithFetch(CLASS_ID)).thenReturn(List.of());
+            when(studentRepository.findByClassEntityIdIn(List.of(CLASS_ID))).thenReturn(List.of());
+            when(paymentRepository.findByClassIdInWithFetch(List.of(CLASS_ID))).thenReturn(List.of());
+            when(attendanceRepository.findByClassIdInWithFetch(List.of(CLASS_ID))).thenReturn(List.of());
+            when(homeworkRepository.findByClassIdInWithFetch(List.of(CLASS_ID))).thenReturn(List.of());
             when(termRepository.findAllWithWeeks()).thenReturn(List.of());
             when(examRepository.findByClassEntityIdIn(List.of(CLASS_ID))).thenReturn(List.of());
             when(extraLessonRepository.findByClassEntityIdIn(List.of(CLASS_ID))).thenReturn(List.of());
@@ -153,10 +151,10 @@ class ChatServiceTest {
             c2.setEndTime(java.time.LocalTime.of(12, 0));
 
             when(classRepository.findAll()).thenReturn(List.of(c1, c2));
-            when(studentRepository.findByClassEntityId(any())).thenReturn(List.of());
-            when(paymentRepository.findByClassIdWithFetch(any())).thenReturn(List.of());
-            when(attendanceRepository.findByClassIdWithFetch(any())).thenReturn(List.of());
-            when(homeworkRepository.findByClassIdWithFetch(any())).thenReturn(List.of());
+            when(studentRepository.findByClassEntityIdIn(any())).thenReturn(List.of());
+            when(paymentRepository.findByClassIdInWithFetch(any())).thenReturn(List.of());
+            when(attendanceRepository.findByClassIdInWithFetch(any())).thenReturn(List.of());
+            when(homeworkRepository.findByClassIdInWithFetch(any())).thenReturn(List.of());
             when(termRepository.findAllWithWeeks()).thenReturn(List.of());
             when(examRepository.findByClassEntityIdIn(any())).thenReturn(List.of());
             when(extraLessonRepository.findByClassEntityIdIn(any())).thenReturn(List.of());
@@ -191,7 +189,7 @@ class ChatServiceTest {
             student.setId(UUID.randomUUID());
             student.setName("Alice");
             student.setClassEntity(classEntity);
-            when(studentRepository.findByClassEntityId(CLASS_ID)).thenReturn(List.of(student));
+            when(studentRepository.findByClassEntityIdIn(List.of(CLASS_ID))).thenReturn(List.of(student));
 
             Term term = new Term();
             term.setKey("term1");
@@ -203,16 +201,16 @@ class ChatServiceTest {
             payment.setTerm(term);
             payment.setWeekIndex((short) 1);
             payment.setStatus("paid");
-            when(paymentRepository.findByClassIdWithFetch(CLASS_ID)).thenReturn(List.of(payment));
+            when(paymentRepository.findByClassIdInWithFetch(List.of(CLASS_ID))).thenReturn(List.of(payment));
 
             Attendance attendance = new Attendance();
             attendance.setStudent(student);
             attendance.setTerm(term);
             attendance.setWeekIndex((short) 1);
             attendance.setPresent(true);
-            when(attendanceRepository.findByClassIdWithFetch(CLASS_ID)).thenReturn(List.of(attendance));
+            when(attendanceRepository.findByClassIdInWithFetch(List.of(CLASS_ID))).thenReturn(List.of(attendance));
 
-            when(homeworkRepository.findByClassIdWithFetch(CLASS_ID)).thenReturn(List.of());
+            when(homeworkRepository.findByClassIdInWithFetch(List.of(CLASS_ID))).thenReturn(List.of());
             when(termRepository.findAllWithWeeks()).thenReturn(List.of(term));
             when(examRepository.findByClassEntityIdIn(List.of(CLASS_ID))).thenReturn(List.of());
             when(extraLessonRepository.findByClassEntityIdIn(List.of(CLASS_ID))).thenReturn(List.of());
