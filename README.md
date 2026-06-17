@@ -64,12 +64,14 @@ To get a local copy up and running, follow these steps.
    npm run dev
   ```
    The frontend runs on `http://localhost:5173`
+   
 3. **Backend:** Configure the database connection in `backend/src/main/resources/application.properties`, then start the server
   ```sh
    cd backend
    mvn spring-boot:run
   ```
    The backend runs on `http://localhost:8080`
+   
 4. **Database:** Apply the SQL migration scripts in `backend/sql/` to your PostgreSQL database in order
 
 ## Usage
