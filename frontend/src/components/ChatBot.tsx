@@ -14,6 +14,7 @@ import ChatIcon from "@mui/icons-material/ChatBubbleOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import SmartToyIcon from "@mui/icons-material/SmartToyOutlined";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ReactMarkdown from "react-markdown";
 import { sendChatMessage } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,19 +27,23 @@ interface Message {
 }
 
 // Compact styling for markdown rendered inside the small chat bubble.
+// Every heading level (#, ##, ###) is normalised to one style so output stays
+// consistent regardless of which level the model happens to emit.
 const markdownSx = {
   "& > *:first-of-type": { mt: 0 },
   "& > *:last-child": { mb: 0 },
-  "& p": { my: 1 },
+  "& p": { my: 0.75 },
   "& h1, & h2, & h3, & h4, & h5, & h6": {
-    fontSize: "0.875rem",
-    fontWeight: 600,
-    mt: 1.5,
+    fontSize: "0.8125rem",
+    fontWeight: 700,
+    lineHeight: 1.4,
+    mt: 1.75,
     mb: 0.5,
   },
-  "& ul, & ol": { my: 0.5, pl: 3 },
+  "& ul, & ol": { my: 0.5, pl: 2.5 },
   "& li": { my: 0.25 },
-  "& strong": { fontWeight: 600 },
+  "& li::marker": { color: "text.secondary" },
+  "& strong": { fontWeight: 700 },
   "& code": {
     fontFamily: "monospace",
     fontSize: "0.78em",
@@ -89,12 +94,19 @@ export default function ChatBot() {
       sender: "user",
       timestamp: new Date(),
     };
+    // Send recent turns (excluding the greeting and the message we're about to add) so
+    // follow-up questions have context. Capped to the last 8 — the backend re-caps and sanitizes.
+    const history = messages
+      .filter((m) => m.id !== 0)
+      .slice(-8)
+      .map((m) => ({ role: m.sender, text: m.text }));
+
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
-      const reply = await sendChatMessage(trimmed);
+      const reply = await sendChatMessage(trimmed, history);
       const botMsg: Message = {
         id: Date.now() + 1,
         text: reply,
@@ -160,11 +172,25 @@ export default function ChatBot() {
                 Assistant
               </Typography>
             </Box>
-            <Tooltip title="Close">
-              <IconButton size="small" onClick={() => setOpen(false)}>
-                <CloseIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Tooltip title="New chat">
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setMessages(initialMessages());
+                    setInput("");
+                  }}
+                  disabled={loading}
+                >
+                  <RestartAltIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Close">
+                <IconButton size="small" onClick={() => setOpen(false)}>
+                  <CloseIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
 
           {/* Messages */}
@@ -284,13 +310,17 @@ export default function ChatBot() {
               borderTop: 1,
               borderColor: "divider",
               display: "flex",
+              alignItems: "flex-end",
               gap: 2,
             }}
           >
             <TextField
               size="small"
               fullWidth
-              placeholder="Ask about classes, exams, payments…"
+              multiline
+              minRows={1}
+              maxRows={4}
+              placeholder="Ask about classes, exams, payments..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {

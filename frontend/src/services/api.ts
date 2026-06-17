@@ -630,11 +630,19 @@ export async function deleteResource(topicId: string, resourceId: string): Promi
 
 // ── Chat ────────────────────────────────────────────────────────────
 
-export async function sendChatMessage(message: string): Promise<string> {
+export interface ChatTurn {
+  role: "user" | "bot";
+  text: string;
+}
+
+export async function sendChatMessage(
+  message: string,
+  history: ChatTurn[] = []
+): Promise<string> {
   const res = await fetch(`${API_BASE}/chat`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, history }),
   });
   const data = await handleResponse<{ reply: string }>(res);
   return data.reply;
