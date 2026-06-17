@@ -7,5 +7,6 @@ import java.util.UUID;
 
 public interface StudentRepository extends JpaRepository<Student, UUID> {
     List<Student> findByClassEntityId(UUID classId);
+    List<Student> findByClassEntityIdIn(List<UUID> classIds);
     java.util.Optional<Student> findByUserIdAndClassEntityId(String userId, UUID classId);
 }
