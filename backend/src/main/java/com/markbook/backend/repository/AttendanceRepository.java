@@ -14,5 +14,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     @Query("SELECT a FROM Attendance a JOIN FETCH a.student JOIN FETCH a.term WHERE a.student.classEntity.id = :classId")
     List<Attendance> findByClassIdWithFetch(@Param("classId") UUID classId);
 
+    @Query("SELECT a FROM Attendance a JOIN FETCH a.student JOIN FETCH a.term WHERE a.student.classEntity.id IN :classIds")
+    List<Attendance> findByClassIdInWithFetch(@Param("classIds") List<UUID> classIds);
+
     void deleteByStudentId(UUID studentId);
 }
