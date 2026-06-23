@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.PaymentDTO;
 import com.markbook.backend.dto.request.UpdatePaymentRequest;
 import com.markbook.backend.security.SecurityUtils;
@@ -15,15 +17,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
     private final ClassService classService;
-
-    public PaymentController(PaymentService paymentService, ClassService classService) {
-        this.paymentService = paymentService;
-        this.classService = classService;
-    }
 
     @GetMapping("/classes/{classId}/payments")
     public List<PaymentDTO> getPayments(@PathVariable UUID classId) {

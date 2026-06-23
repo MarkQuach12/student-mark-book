@@ -1,10 +1,17 @@
 package com.markbook.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "homework_completions", uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "homework_id"}))
+@Getter
+@Setter
+@NoArgsConstructor
 public class HomeworkCompletion {
 
     @Id
@@ -21,18 +28,4 @@ public class HomeworkCompletion {
 
     @Column(nullable = false)
     private Boolean completed = false;
-
-    public HomeworkCompletion() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
-
-    public Homework getHomework() { return homework; }
-    public void setHomework(Homework homework) { this.homework = homework; }
-
-    public Boolean getCompleted() { return completed; }
-    public void setCompleted(Boolean completed) { this.completed = completed; }
 }

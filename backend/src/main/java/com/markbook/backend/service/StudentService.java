@@ -8,6 +8,7 @@ import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.HomeworkCompletionRepository;
 import com.markbook.backend.repository.PaymentRepository;
 import com.markbook.backend.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
     private final StudentRepository studentRepository;
@@ -26,19 +28,6 @@ public class StudentService {
     private final HomeworkCompletionRepository homeworkCompletionRepository;
     private final ClassService classService;
     private final PaymentService paymentService;
-
-    public StudentService(StudentRepository studentRepository, ClassRepository classRepository,
-                          AttendanceRepository attendanceRepository, PaymentRepository paymentRepository,
-                          HomeworkCompletionRepository homeworkCompletionRepository,
-                          ClassService classService, PaymentService paymentService) {
-        this.studentRepository = studentRepository;
-        this.classRepository = classRepository;
-        this.attendanceRepository = attendanceRepository;
-        this.paymentRepository = paymentRepository;
-        this.homeworkCompletionRepository = homeworkCompletionRepository;
-        this.classService = classService;
-        this.paymentService = paymentService;
-    }
 
     @Transactional(readOnly = true)
     public List<Student> getStudentsByClassId(UUID classId) {

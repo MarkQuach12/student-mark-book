@@ -3,6 +3,7 @@ package com.markbook.backend.service;
 import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class HomeworkService {
 
     private final HomeworkRepository homeworkRepository;
@@ -19,18 +21,6 @@ public class HomeworkService {
     private final ClassRepository classRepository;
     private final TermRepository termRepository;
     private final StudentRepository studentRepository;
-
-    public HomeworkService(HomeworkRepository homeworkRepository,
-                           HomeworkCompletionRepository completionRepository,
-                           ClassRepository classRepository,
-                           TermRepository termRepository,
-                           StudentRepository studentRepository) {
-        this.homeworkRepository = homeworkRepository;
-        this.completionRepository = completionRepository;
-        this.classRepository = classRepository;
-        this.termRepository = termRepository;
-        this.studentRepository = studentRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<Homework> getHomeworkByClassId(UUID classId) {

@@ -2,6 +2,7 @@ package com.markbook.backend.config;
 
 import com.markbook.backend.model.User;
 import com.markbook.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AdminSeeder implements ApplicationRunner {
 
     private final UserRepository userRepository;
@@ -21,11 +23,6 @@ public class AdminSeeder implements ApplicationRunner {
 
     @Value("${admin.password}")
     private String adminPassword;
-
-    public AdminSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public void run(ApplicationArguments args) {

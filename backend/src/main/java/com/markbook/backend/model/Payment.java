@@ -1,10 +1,17 @@
 package com.markbook.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "payments", uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "term_key", "week_index"}))
+@Getter
+@Setter
+@NoArgsConstructor
 public class Payment {
 
     @Id
@@ -24,21 +31,4 @@ public class Payment {
 
     @Column(nullable = false, length = 15)
     private String status = "unpaid";
-
-    public Payment() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
-
-    public Term getTerm() { return term; }
-    public void setTerm(Term term) { this.term = term; }
-
-    public Short getWeekIndex() { return weekIndex; }
-    public void setWeekIndex(Short weekIndex) { this.weekIndex = weekIndex; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 }

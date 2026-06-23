@@ -7,6 +7,7 @@ import com.markbook.backend.model.Topic;
 import com.markbook.backend.repository.ResourceRepository;
 import com.markbook.backend.repository.TopicRepository;
 import com.markbook.backend.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,16 +19,11 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
     private final TopicRepository topicRepository;
-
-    public ResourceService(ResourceRepository resourceRepository,
-                           TopicRepository topicRepository) {
-        this.resourceRepository = resourceRepository;
-        this.topicRepository = topicRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<ResourceDTO> getResourcesForTopic(UUID topicId) {
@@ -54,38 +50,10 @@ public class ResourceService {
         resource.setTitle(trimmedTitle);
         resource.setDriveUrl(url.trim());
         // fileType inference disabled: most Drive share links don't expose extensions.
-        // inferFileType() remains for future re-use if we ever wire up Drive API metadata.
 
         Resource saved = resourceRepository.save(resource);
         log.info("Resource created id={} topicId={} title={}", saved.getId(), topicId, title);
         return ResourceDTO.from(saved);
-    }
-
-    static String inferFileType(String url) {
-        if (url == null) return null;
-        String lower = url.toLowerCase();
-
-        if (lower.contains("docs.google.com/document/")) return "gdoc";
-        if (lower.contains("docs.google.com/presentation/")) return "gslides";
-        if (lower.contains("docs.google.com/spreadsheets/")) return "gsheet";
-
-        int q = lower.indexOf('?');
-        if (q >= 0) lower = lower.substring(0, q);
-        int h = lower.indexOf('#');
-        if (h >= 0) lower = lower.substring(0, h);
-
-        int dot = lower.lastIndexOf('.');
-        if (dot < 0 || dot == lower.length() - 1) return null;
-        String ext = lower.substring(dot + 1);
-
-        return switch (ext) {
-            case "pdf" -> "pdf";
-            case "doc", "docx" -> ext;
-            case "ppt", "pptx" -> "pptx";
-            case "xls", "xlsx" -> "xlsx";
-            case "png", "jpg", "jpeg" -> ext;
-            default -> null;
-        };
     }
 
     @Transactional

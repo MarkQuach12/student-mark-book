@@ -9,6 +9,7 @@ import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.ExtraLessonRepository;
 import com.markbook.backend.repository.UserClassAssignmentRepository;
 import com.markbook.backend.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,19 +23,12 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ExtraLessonService {
 
     private final ExtraLessonRepository extraLessonRepository;
     private final ClassRepository classRepository;
     private final UserClassAssignmentRepository assignmentRepository;
-
-    public ExtraLessonService(ExtraLessonRepository extraLessonRepository,
-                              ClassRepository classRepository,
-                              UserClassAssignmentRepository assignmentRepository) {
-        this.extraLessonRepository = extraLessonRepository;
-        this.classRepository = classRepository;
-        this.assignmentRepository = assignmentRepository;
-    }
 
     private List<UUID> getAccessibleClassIds(String userId) {
         if (SecurityUtils.isAdmin()) {

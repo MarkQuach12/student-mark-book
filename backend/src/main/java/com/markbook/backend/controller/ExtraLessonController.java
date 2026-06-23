@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.ExtraLessonDTO;
 import com.markbook.backend.dto.request.CreateExtraLessonRequest;
 import com.markbook.backend.security.SecurityUtils;
@@ -16,13 +18,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/extra-lessons")
+@RequiredArgsConstructor
 public class ExtraLessonController {
 
     private final ExtraLessonService extraLessonService;
-
-    public ExtraLessonController(ExtraLessonService extraLessonService) {
-        this.extraLessonService = extraLessonService;
-    }
 
     @GetMapping
     public List<ExtraLessonDTO> getExtraLessons(@RequestParam(required = false) String start,

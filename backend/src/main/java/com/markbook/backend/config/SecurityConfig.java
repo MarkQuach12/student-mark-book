@@ -1,5 +1,7 @@
 package com.markbook.backend.config;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,19 +17,12 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
     private final CorsConfigurationSource corsConfigurationSource;
     private final RateLimitFilter rateLimitFilter;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter,
-                          CorsConfigurationSource corsConfigurationSource,
-                          RateLimitFilter rateLimitFilter) {
-        this.jwtFilter = jwtFilter;
-        this.corsConfigurationSource = corsConfigurationSource;
-        this.rateLimitFilter = rateLimitFilter;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
