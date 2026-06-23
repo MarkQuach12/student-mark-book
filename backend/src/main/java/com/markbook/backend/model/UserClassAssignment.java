@@ -1,11 +1,18 @@
 package com.markbook.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "user_class_assignments")
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserClassAssignment {
 
     @Id
@@ -22,14 +29,4 @@ public class UserClassAssignment {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
-
-    public UUID getId() { return id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public ClassEntity getClassEntity() { return classEntity; }
-    public void setClassEntity(ClassEntity classEntity) { this.classEntity = classEntity; }
-
-    public OffsetDateTime getCreatedAt() { return createdAt; }
 }

@@ -1,10 +1,17 @@
 package com.markbook.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "class_topic_visibility", uniqueConstraints = @UniqueConstraint(columnNames = {"class_id", "topic_id"}))
+@Getter
+@Setter
+@NoArgsConstructor
 public class ClassTopicVisibility {
 
     @Id
@@ -21,18 +28,4 @@ public class ClassTopicVisibility {
 
     @Column(nullable = false)
     private Boolean visible = false;
-
-    public ClassTopicVisibility() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
-    public ClassEntity getClassEntity() { return classEntity; }
-    public void setClassEntity(ClassEntity classEntity) { this.classEntity = classEntity; }
-
-    public Topic getTopic() { return topic; }
-    public void setTopic(Topic topic) { this.topic = topic; }
-
-    public Boolean getVisible() { return visible; }
-    public void setVisible(Boolean visible) { this.visible = visible; }
 }

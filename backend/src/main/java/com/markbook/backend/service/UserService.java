@@ -3,6 +3,7 @@ package com.markbook.backend.service;
 import com.markbook.backend.exception.ResourceNotFoundException;
 import com.markbook.backend.model.User;
 import com.markbook.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,15 +13,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Transactional(readOnly = true)
     public User getUser(String userId) {

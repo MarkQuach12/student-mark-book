@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.ExamDTO;
 import com.markbook.backend.dto.request.CreateExamRequest;
 import com.markbook.backend.security.SecurityUtils;
@@ -16,13 +18,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/exams")
+@RequiredArgsConstructor
 public class ExamController {
 
     private final ExamService examService;
-
-    public ExamController(ExamService examService) {
-        this.examService = examService;
-    }
 
     @GetMapping
     public List<ExamDTO> getExams(@RequestParam(required = false) String start,

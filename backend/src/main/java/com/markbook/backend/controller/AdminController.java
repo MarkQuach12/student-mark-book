@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.ClassDTO;
 import com.markbook.backend.dto.UserDTO;
 import com.markbook.backend.exception.ResourceNotFoundException;
@@ -22,22 +24,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final UserRepository userRepository;
     private final ClassRepository classRepository;
     private final UserClassAssignmentRepository assignmentRepository;
     private final StudentRepository studentRepository;
-
-    public AdminController(UserRepository userRepository,
-                           ClassRepository classRepository,
-                           UserClassAssignmentRepository assignmentRepository,
-                           StudentRepository studentRepository) {
-        this.userRepository = userRepository;
-        this.classRepository = classRepository;
-        this.assignmentRepository = assignmentRepository;
-        this.studentRepository = studentRepository;
-    }
 
     @GetMapping("/users")
     public List<UserDTO> listUsers() {

@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.StudentDTO;
 import com.markbook.backend.dto.request.CreateStudentRequest;
 import com.markbook.backend.security.SecurityUtils;
@@ -16,15 +18,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class StudentController {
 
     private final StudentService studentService;
     private final ClassService classService;
-
-    public StudentController(StudentService studentService, ClassService classService) {
-        this.studentService = studentService;
-        this.classService = classService;
-    }
 
     @GetMapping("/classes/{classId}/students")
     public List<StudentDTO> getStudents(@PathVariable UUID classId) {

@@ -16,6 +16,7 @@ import com.markbook.backend.repository.TermRepository;
 import com.markbook.backend.repository.UserClassAssignmentRepository;
 import com.markbook.backend.repository.UserRepository;
 import com.markbook.backend.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ClassService {
 
     private final ClassRepository classRepository;
@@ -44,36 +46,6 @@ public class ClassService {
     private final ClassTopicVisibilityRepository classTopicVisibilityRepository;
     private final TopicService topicService;
     private final ExtraLessonService extraLessonService;
-
-    public ClassService(ClassRepository classRepository,
-                        UserRepository userRepository,
-                        HomeworkRepository homeworkRepository,
-                        HomeworkCompletionRepository completionRepository,
-                        AttendanceRepository attendanceRepository,
-                        PaymentRepository paymentRepository,
-                        TermRepository termRepository,
-                        UserClassAssignmentRepository assignmentRepository,
-                        StudentRepository studentRepository,
-                        ExamRepository examRepository,
-                        ExtraLessonRepository extraLessonRepository,
-                        ClassTopicVisibilityRepository classTopicVisibilityRepository,
-                        TopicService topicService,
-                        ExtraLessonService extraLessonService) {
-        this.classRepository = classRepository;
-        this.userRepository = userRepository;
-        this.homeworkRepository = homeworkRepository;
-        this.completionRepository = completionRepository;
-        this.attendanceRepository = attendanceRepository;
-        this.paymentRepository = paymentRepository;
-        this.termRepository = termRepository;
-        this.assignmentRepository = assignmentRepository;
-        this.studentRepository = studentRepository;
-        this.examRepository = examRepository;
-        this.extraLessonRepository = extraLessonRepository;
-        this.classTopicVisibilityRepository = classTopicVisibilityRepository;
-        this.topicService = topicService;
-        this.extraLessonService = extraLessonService;
-    }
 
     public void verifyClassAccess(String userId, UUID classId) {
         if (SecurityUtils.isAdmin()) return;
@@ -106,12 +78,6 @@ public class ClassService {
         return assignmentRepository.findByUserId(userId).stream()
                 .map(UserClassAssignment::getClassEntity)
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public ClassEntity getClassById(UUID id) {
-        return classRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
     }
 
     @Transactional

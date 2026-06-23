@@ -8,6 +8,7 @@ import com.markbook.backend.dto.request.SignupRequest;
 import com.markbook.backend.service.AuthService;
 import com.markbook.backend.service.DemoService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,15 +16,11 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final DemoService demoService;
-
-    public AuthController(AuthService authService, DemoService demoService) {
-        this.authService = authService;
-        this.demoService = demoService;
-    }
 
     @PostMapping("/signup")
     public AuthResponse signup(@RequestBody @Valid SignupRequest body) {

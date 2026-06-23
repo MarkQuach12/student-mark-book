@@ -3,6 +3,7 @@ package com.markbook.backend.config;
 import com.markbook.backend.model.Term;
 import com.markbook.backend.model.TermWeek;
 import com.markbook.backend.repository.TermRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -21,13 +22,10 @@ import java.util.List;
 @Slf4j
 @Component
 @Order(0)
+@RequiredArgsConstructor
 public class TermSeeder implements ApplicationRunner {
 
     private final TermRepository termRepository;
-
-    public TermSeeder(TermRepository termRepository) {
-        this.termRepository = termRepository;
-    }
 
     @Override
     @Transactional

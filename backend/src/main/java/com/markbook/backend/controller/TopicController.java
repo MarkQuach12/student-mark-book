@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.TopicDTO;
 import com.markbook.backend.dto.request.CreateTopicRequest;
 import com.markbook.backend.dto.request.UpdateTopicRequest;
@@ -17,15 +19,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/topics")
+@RequiredArgsConstructor
 public class TopicController {
 
     private final TopicService topicService;
     private final ClassService classService;
-
-    public TopicController(TopicService topicService, ClassService classService) {
-        this.topicService = topicService;
-        this.classService = classService;
-    }
 
     @GetMapping
     public List<TopicDTO> getTopics(@RequestParam UUID classId, @RequestParam String classLevel) {

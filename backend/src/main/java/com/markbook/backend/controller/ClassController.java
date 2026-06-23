@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.ClassDTO;
 import com.markbook.backend.dto.ClassOverviewDTO;
 import com.markbook.backend.dto.request.CreateClassRequest;
@@ -18,13 +20,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/classes")
+@RequiredArgsConstructor
 public class ClassController {
 
     private final ClassService classService;
-
-    public ClassController(ClassService classService) {
-        this.classService = classService;
-    }
 
     @GetMapping
     public List<ClassDTO> getClasses() {

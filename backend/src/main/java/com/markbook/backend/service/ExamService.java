@@ -7,6 +7,7 @@ import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.ExamRepository;
 import com.markbook.backend.repository.UserClassAssignmentRepository;
 import com.markbook.backend.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,19 +20,12 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ExamService {
 
     private final ExamRepository examRepository;
     private final ClassRepository classRepository;
     private final UserClassAssignmentRepository assignmentRepository;
-
-    public ExamService(ExamRepository examRepository,
-                       ClassRepository classRepository,
-                       UserClassAssignmentRepository assignmentRepository) {
-        this.examRepository = examRepository;
-        this.classRepository = classRepository;
-        this.assignmentRepository = assignmentRepository;
-    }
 
     private List<UUID> getAccessibleClassIds(String userId) {
         if (SecurityUtils.isAdmin()) {
@@ -54,11 +48,6 @@ public class ExamService {
         List<UUID> classIds = getAccessibleClassIds(userId);
         if (classIds.isEmpty()) return List.of();
         return examRepository.findByClassEntityIdInAndExamDateBetween(classIds, start, end);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Exam> getExamsForClass(UUID classId) {
-        return examRepository.findByClassEntityId(classId);
     }
 
     @Transactional

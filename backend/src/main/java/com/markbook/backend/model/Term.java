@@ -1,10 +1,17 @@
 package com.markbook.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
 @Entity
 @Table(name = "terms")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Term {
 
     @Id
@@ -20,18 +27,4 @@ public class Term {
     @OneToMany(mappedBy = "term", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("weekIndex ASC")
     private List<TermWeek> weeks;
-
-    public Term() {}
-
-    public String getKey() { return key; }
-    public void setKey(String key) { this.key = key; }
-
-    public String getLabel() { return label; }
-    public void setLabel(String label) { this.label = label; }
-
-    public Short getSortOrder() { return sortOrder; }
-    public void setSortOrder(Short sortOrder) { this.sortOrder = sortOrder; }
-
-    public List<TermWeek> getWeeks() { return weeks; }
-    public void setWeeks(List<TermWeek> weeks) { this.weeks = weeks; }
 }

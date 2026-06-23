@@ -1,5 +1,7 @@
 package com.markbook.backend.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.AuthResponse;
 import com.markbook.backend.model.*;
 import com.markbook.backend.repository.*;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DemoService {
 
     private static final Logger log = LoggerFactory.getLogger(DemoService.class);
@@ -39,36 +42,6 @@ public class DemoService {
     private final UserClassAssignmentRepository userClassAssignmentRepository;
     private final TermRepository termRepository;
     private final JwtUtil jwtUtil;
-
-    public DemoService(UserRepository userRepository,
-                       ClassRepository classRepository,
-                       StudentRepository studentRepository,
-                       HomeworkRepository homeworkRepository,
-                       HomeworkCompletionRepository homeworkCompletionRepository,
-                       AttendanceRepository attendanceRepository,
-                       PaymentRepository paymentRepository,
-                       ExamRepository examRepository,
-                       TopicRepository topicRepository,
-                       ResourceRepository resourceRepository,
-                       ClassTopicVisibilityRepository classTopicVisibilityRepository,
-                       UserClassAssignmentRepository userClassAssignmentRepository,
-                       TermRepository termRepository,
-                       JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
-        this.classRepository = classRepository;
-        this.studentRepository = studentRepository;
-        this.homeworkRepository = homeworkRepository;
-        this.homeworkCompletionRepository = homeworkCompletionRepository;
-        this.attendanceRepository = attendanceRepository;
-        this.paymentRepository = paymentRepository;
-        this.examRepository = examRepository;
-        this.topicRepository = topicRepository;
-        this.resourceRepository = resourceRepository;
-        this.classTopicVisibilityRepository = classTopicVisibilityRepository;
-        this.userClassAssignmentRepository = userClassAssignmentRepository;
-        this.termRepository = termRepository;
-        this.jwtUtil = jwtUtil;
-    }
 
     private record ClassSpec(
             String level,

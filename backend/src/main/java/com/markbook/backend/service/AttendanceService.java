@@ -7,6 +7,7 @@ import com.markbook.backend.model.Term;
 import com.markbook.backend.repository.AttendanceRepository;
 import com.markbook.backend.repository.StudentRepository;
 import com.markbook.backend.repository.TermRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,19 +17,12 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
     private final StudentRepository studentRepository;
     private final TermRepository termRepository;
-
-    public AttendanceService(AttendanceRepository attendanceRepository,
-                             StudentRepository studentRepository,
-                             TermRepository termRepository) {
-        this.attendanceRepository = attendanceRepository;
-        this.studentRepository = studentRepository;
-        this.termRepository = termRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<Attendance> getAttendanceByClassId(UUID classId) {

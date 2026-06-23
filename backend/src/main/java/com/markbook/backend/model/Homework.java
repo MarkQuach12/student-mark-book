@@ -1,10 +1,17 @@
 package com.markbook.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "homework")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Homework {
 
     @Id
@@ -24,21 +31,4 @@ public class Homework {
 
     @Column(name = "week_index", nullable = false)
     private Short weekIndex;
-
-    public Homework() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
-    public ClassEntity getClassEntity() { return classEntity; }
-    public void setClassEntity(ClassEntity classEntity) { this.classEntity = classEntity; }
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public Term getTerm() { return term; }
-    public void setTerm(Term term) { this.term = term; }
-
-    public Short getWeekIndex() { return weekIndex; }
-    public void setWeekIndex(Short weekIndex) { this.weekIndex = weekIndex; }
 }

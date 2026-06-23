@@ -9,6 +9,7 @@ import com.markbook.backend.repository.ClassRepository;
 import com.markbook.backend.repository.ClassTopicVisibilityRepository;
 import com.markbook.backend.repository.TopicRepository;
 import com.markbook.backend.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,19 +21,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class TopicService {
 
     private final TopicRepository topicRepository;
     private final ClassRepository classRepository;
     private final ClassTopicVisibilityRepository visibilityRepository;
-
-    public TopicService(TopicRepository topicRepository,
-                        ClassRepository classRepository,
-                        ClassTopicVisibilityRepository visibilityRepository) {
-        this.topicRepository = topicRepository;
-        this.classRepository = classRepository;
-        this.visibilityRepository = visibilityRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<TopicDTO> getTopicsForClass(UUID classId, String classLevel) {

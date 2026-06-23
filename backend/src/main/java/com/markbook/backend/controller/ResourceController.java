@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.ResourceDTO;
 import com.markbook.backend.dto.request.CreateResourceRequest;
 import com.markbook.backend.security.SecurityUtils;
@@ -15,13 +17,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/topics/{topicId}/resources")
+@RequiredArgsConstructor
 public class ResourceController {
 
     private final ResourceService resourceService;
-
-    public ResourceController(ResourceService resourceService) {
-        this.resourceService = resourceService;
-    }
 
     @GetMapping
     public List<ResourceDTO> getResources(@PathVariable UUID topicId) {

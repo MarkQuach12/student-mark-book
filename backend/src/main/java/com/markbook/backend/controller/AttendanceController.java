@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.AttendanceDTO;
 import com.markbook.backend.dto.request.UpdateAttendanceRequest;
 import com.markbook.backend.security.SecurityUtils;
@@ -15,15 +17,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
     private final ClassService classService;
-
-    public AttendanceController(AttendanceService attendanceService, ClassService classService) {
-        this.attendanceService = attendanceService;
-        this.classService = classService;
-    }
 
     @GetMapping("/classes/{classId}/attendance")
     public List<AttendanceDTO> getAttendance(@PathVariable UUID classId) {

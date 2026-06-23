@@ -1,5 +1,7 @@
 package com.markbook.backend.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.markbook.backend.dto.HomeworkCompletionDTO;
 import com.markbook.backend.dto.HomeworkDTO;
 import com.markbook.backend.dto.request.CreateHomeworkRequest;
@@ -19,15 +21,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class HomeworkController {
 
     private final HomeworkService homeworkService;
     private final ClassService classService;
-
-    public HomeworkController(HomeworkService homeworkService, ClassService classService) {
-        this.homeworkService = homeworkService;
-        this.classService = classService;
-    }
 
     @GetMapping("/classes/{classId}/homework")
     public List<HomeworkDTO> getHomework(@PathVariable UUID classId,
