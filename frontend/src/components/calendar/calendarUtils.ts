@@ -1,13 +1,3 @@
-export const DAY_COLUMNS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
 /** Convert "HH:mm:ss" or "HH:mm" to minutes since midnight. */
 export function parseTime(timeStr: string): number {
   const parts = timeStr.split(":");
@@ -20,11 +10,6 @@ export function formatTimeLabel(hour: number): string {
   if (hour < 12) return `${hour} am`;
   if (hour === 12) return "12 pm";
   return `${hour - 12} pm`;
-}
-
-/** Return today's day name (e.g. "Monday") matching DAY_COLUMNS. */
-export function getTodayName(): string {
-  return new Date().toLocaleDateString("en-US", { weekday: "long" });
 }
 
 /** Format minutes since midnight to "HH:MM" display. */
